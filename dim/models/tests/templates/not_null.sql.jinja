@@ -1,0 +1,6 @@
+SELECT
+  COUNT(*) AS row_count
+FROM `{{ dataset }}`
+WHERE
+  submission_date = DATE("{{ partition }}")
+  {% for column in columns %}AND {{ column }} IS NULL{% endfor %};

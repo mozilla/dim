@@ -1,8 +1,9 @@
-data_monitoring: 
-  dataset: moz-fx-data-shared-prod.telemetry_derived.active_users_aggregates_v1
-  owner: akommasani@mozilla.com
-  tests: 
-    - 
-      not_null: 
-        - segment
-  tier: tier_1
+dim_config:
+  - dataset: data-monitoring-dev.dummy.active_users_aggregates_v1
+    owner: akommasani@mozilla.com
+    # tier: tier_1
+    tests:
+      - type: not_null
+        config:
+          columns:
+            - segment
