@@ -39,7 +39,7 @@ install-requirements: setup-venv
 	@venv/bin/python -m pip install -r requirements/requirements.in
 
 install-dev-requirements: setup-venv
-	@python -m pip install -r requirements/dev-requirements.in
+	@venv/bin/python -m pip install -r requirements/dev-requirements.in
 
 setup-local-env: setup-venv upgrade-pip install-requirements install-dev-requirements
 
