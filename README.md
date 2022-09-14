@@ -1,5 +1,5 @@
 # dim
 
 # Prerequisites
-- python >= 3.10 < 3.11
+- python >= `3.10` < `3.11`
 - docker

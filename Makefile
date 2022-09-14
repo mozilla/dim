@@ -3,30 +3,49 @@
 
 .PHONY: build
 build-app: ## Builds final app Docker image
-	docker build -t dim:latest-dev --target=app -f Dockerfile .
+	@docker build -t dim:latest-dev --target=app -f Dockerfile .
+
+test: build-test ## Builds test Docker image and executes Python tests
+	@docker run dim:latest-test python -m pytest dim/tests/
 
 .PHONY: test
 build-test: ## Builds test Docker image containing all dev requirements
-	docker build -t dim:latest-test --target=test -f Dockerfile .
+	@docker build -t dim:latest-test --target=test -f Dockerfile .
 
-test: build-test ## Builds test Docker image and executes Python tests
-	docker run dim:latest-test python -m pytest dim/tests/
+test-black: build-test
+	@docker run dim:latest-test python -m black --check dim/
+
+test-flake8: build-test
+	@docker run dim:latest-test python -m flake8 dim/
+
+test-mypy: build-test
+	@docker run dim:latest-test python -m mypy dim/
+
+test-all: build-test test test-black test-flake8 test-mypy
 
 # For setting up local environment
-venv:
-	if [ -d "venv" ]; then echo "venv directory already exists"; fi
-	python -m venv venv
+setup-venv:
+ifneq ($(wildcard venv/.*),)
+	@echo "venv/ directory already exists to setup venv from scratch"
+	@echo "run 'make clean' then re-run this command"
+else
+	@python -m venv venv
+endif
 
-upgrade-pip:
-	venv/bin/python -m pip install --upgrade pip
+upgrade-pip: setup-venv
+	@venv/bin/python -m pip install --upgrade pip
 
-install-requirements:
-	python -m pip install -r requirements/requirements.in
+install-requirements: setup-venv
+	@venv/bin/python -m pip install -r requirements/requirements.in
 
-install-dev-requirements:
-	python -m pip install -r requirements/dev-requirements.in
+install-dev-requirements: setup-venv
+	@python -m pip install -r requirements/dev-requirements.in
 
-setup-local-env: venv upgrade-pip install-requirements install-dev-requirements
+setup-local-env: setup-venv upgrade-pip install-requirements install-dev-requirements
+
+.PHONY: clean
+make clean:  # Removes local env
+	@rm -rf venv/
 
 # help source: https://stackoverflow.com/a/64996042
 .PHONY: help
