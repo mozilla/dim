@@ -1,19 +1,16 @@
 from models.tests.base import Base
-import jinja2
 
+## TODO: validate config, correct keys + types
 class NotNull(Base):
-    TEMPLATE_FILE = "not_null.sql.jinja"
+    TEMPLATE_FILE = "not_null" + Base.TEMPLATE_FILE_EXTENSION
 
     def __init__(self, name, dataset, config):
         super().__init__(name, config)
         self.config["partition"] = "2020-01-13"
         self.config["dataset"] = dataset
 
-    ## TODO: validate config, correct keys + types
-
     def generate_test_sql(self):
-        templateLoader = jinja2.FileSystemLoader(searchpath=Base.TEMPLATES_LOC)
-        templateEnv = jinja2.Environment(loader=templateLoader)
+        return super().generate_test_sql(test_type="not_null")
 
-        template = templateEnv.get_template(NotNull.TEMPLATE_FILE)
-        return template.render(self.config)
+    def execute_test_sql(self, sql):
+        return super().execute_test_sql(sql=sql)
