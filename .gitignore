@@ -161,3 +161,5 @@ cython_debug/
 #.idea/
 
 *service_account*
+# for now adding generated_sql/ to list of folder to ignore
+generated_sql/
