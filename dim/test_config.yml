@@ -1,9 +1,0 @@
-dim_config:
-  - dataset: data-monitoring-dev.dummy.active_users_aggregates_v1
-    owner: akommasani@mozilla.com
-    # tier: tier_1
-    tests:
-      - type: not_null
-        config:
-          columns:
-            - segment

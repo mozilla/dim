@@ -3,4 +3,6 @@ SELECT
 FROM `{{ project_id }}.{{ dataset_id }}.{{ table_id }}`
 WHERE
   submission_date = DATE("{{ partition }}")
-  {% for column in columns %} AND {{ column }} IS NULL{% endfor %};
+GROUP BY 
+  {% for column in columns %} {{ column }} {{ "," if not loop.last else "" }} {% endfor %}
+HAVING COUNT(*) > 1;
