@@ -28,12 +28,11 @@ class Base:
     TEMPLATES_LOC = "dim/models/tests/templates"
     TEMPLATE_FILE_EXTENSION = ".sql.jinja"
 
-    def __init__(self, name: str, config: dict):
-        self.name = name
+    def __init__(self, config: dict):
         self.config = config
 
     def generate_test_sql(self, test_type):
-        generated_sql_folder = Path(GENERATED_SQL_FOLDER + "/" + self.config["dataset"].replace(".", "/"))
+        generated_sql_folder = Path(GENERATED_SQL_FOLDER + "/" + self.config["project_id"]+"/"+ self.config["dataset_id"] +"/" + self.config["table_id"])
         check_directory_exists(generated_sql_folder) or create_directory(generated_sql_folder)
 
         templateLoader = jinja2.FileSystemLoader(searchpath=self.TEMPLATES_LOC)
@@ -42,12 +41,11 @@ class Base:
 
         target_file = generated_sql_folder.joinpath(f'{test_type}.sql')
         generated_sql = template.render(self.config)
-
         sql_to_file(target_file=target_file, sql=generated_sql)
 
         return target_file, generated_sql
 
     def execute_test_sql(self, sql):
         # TODO: extract authentication logic into separate module
-        client = bigquery.Client.from_service_account_json(json_credentials_path=CREDS, project=GCP_PROJECT)
+        client = bigquery.Client(project=GCP_PROJECT)
         return client.query(sql).result()
