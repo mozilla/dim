@@ -1,6 +1,10 @@
-SELECT
+WITH CTE AS (SELECT
   COUNT(*) AS row_count
 FROM `{{ project_id }}.{{ dataset_id }}.{{ table_id }}`
 WHERE
   submission_date = DATE("{{ partition }}")
-  {% for column in columns %} AND {{ column }} IS NULL{% endfor %};
+  {% for column in columns %} AND {{ column }} IS NULL {% endfor %})
+
+SELECT *, {{ project_id }} as project_id, {{ dataset_id }} as dataset_id, {{ table_id }} as table_id, CURRENT_DATE() as created_date
+FROM CTE 
+WHERE {{ validation }}
