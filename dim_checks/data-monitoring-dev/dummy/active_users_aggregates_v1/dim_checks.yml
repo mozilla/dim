@@ -7,10 +7,6 @@ dim_config:
           columns:
             - segment 
           validation: row_count > 10
-          enabled: True
-          notifier: slack
-          recipients: "#data-monitoring-mvp"
-          alert-name: "test_alert_for_null"
       - type: uniqueness
         config:
             columns:
