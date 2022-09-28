@@ -5,6 +5,6 @@ WHERE
   submission_date = DATE("{{ partition }}")
   {% for column in columns %} AND {{ column }} IS NULL {% endfor %})
 
-SELECT *, {{ project_id }} as project_id, {{ dataset_id }} as dataset_id, {{ table_id }} as table_id, CURRENT_DATE() as created_date
+SELECT *, "{{ project_id }}" as project_id, "{{ dataset_id }}" as dataset_id, "{{ table_id }}" as table_id, "{{ dq_check }}" as dq_check, CURRENT_DATE() as created_date
 FROM CTE 
-WHERE {{ validation }}
+WHERE  row_count > {{ threshold }}
