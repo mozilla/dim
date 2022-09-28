@@ -10,10 +10,11 @@ class Uniqueness(Base):
         self.config["project_id"] = project_id
         self.config["dataset_id"] = dataset_id
         self.config["table_id"] = table_id
+        self.config["dq_check"] = "uniqueness"
         self.name = dataset_id + '__' + "uniqueness"
 
     def generate_test_sql(self):
-        return super().generate_test_sql(test_type="uniqueness")
+        return super().generate_test_sql(dq_check="uniqueness")
 
     def execute_test_sql(self, sql):
         return super().execute_test_sql(sql=sql)

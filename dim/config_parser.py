@@ -4,16 +4,9 @@ import yaml
 import os
 from models.tests.not_null import NotNull
 from models.tests.uniqueness import Uniqueness
-from notification.slack import SlackNotifier
-from bigquery_client import BigQueryClient
 
 CONFIG_ROOT_PATH = "dim_checks"
 TEST_CLASS_MAPPING = {"not_null": NotNull, "uniqueness": Uniqueness}
-
-
-def bigquery(self):
-    """Return the BigQuery client instance."""
-    return BigQueryClient(project=self.project, dataset=self.dataset)
 
 
 def get_all_paths_yaml(name, config_root_path: str):
@@ -46,17 +39,7 @@ def main():
                     table_id=table_id,
                     config=test["config"])
                 _, test_sql = dq_check.generate_test_sql()
-                result = dq_check.execute_test_sql(sql=test_sql)
-                # row_count = sum([row.row_count for row in result])
-
-                # if row_count > 0:
-                #     print("test for " + test_type + " " + project_id + "."+ dataset_id + "." + table_id +" has " + str(row_count) +" values found!")
-                #     error_msg = "test for " + test_type + " " + project_id + "."+ dataset_id + "." + table_id +" has " + str(row_count) +" values found!"
-                #     notifier = SlackNotifier(error_msg)
-                #     notifier.send_error_notification()
-
-        #         else:
-        #             print("no null values found!")
+                dq_check.execute_test_sql(sql=test_sql)
 
 
 if __name__ == "__main__":

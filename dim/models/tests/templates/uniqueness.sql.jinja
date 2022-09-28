@@ -1,8 +1,12 @@
-SELECT
+WITH CTE AS (SELECT
   COUNT(*) AS row_count
 FROM `{{ project_id }}.{{ dataset_id }}.{{ table_id }}`
 WHERE
   submission_date = DATE("{{ partition }}")
 GROUP BY 
   {% for column in columns %} {{ column }} {{ "," if not loop.last else "" }} {% endfor %}
-HAVING COUNT(*) > 1;
+HAVING COUNT(*) > 1)
+
+SELECT *, "{{ project_id }}" as project_id, "{{ dataset_id }}" as dataset_id, "{{ table_id }}" as table_id,  "{{ dq_check }}" as dq_check, CURRENT_DATE() as created_date
+FROM CTE 
+WHERE  row_count > {{ threshold }}

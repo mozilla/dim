@@ -10,10 +10,11 @@ class NotNull(Base):
         self.config["project_id"] = project_id
         self.config["dataset_id"] = dataset_id
         self.config["table_id"] = table_id
+        self.config["dq_check"] = "not_null"
         self.name = dataset_id + '__' + "not_null"
 
     def generate_test_sql(self):
-        return super().generate_test_sql(test_type="not_null")
+        return super().generate_test_sql(dq_check="not_null")
 
     def execute_test_sql(self, sql):
         return super().execute_test_sql(sql=sql)
