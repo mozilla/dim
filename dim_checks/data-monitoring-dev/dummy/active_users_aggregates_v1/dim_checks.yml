@@ -2,14 +2,28 @@ dim_config:
   - owner: akommasani@mozilla.com
     # tier: tier_1
     tests:
+      - type: table_row_count
+        config:
+          threshold: row_count >= 10
+          slack-alert: enabled
       - type: not_null
         config:
           columns:
             - segment 
-          threshold: 10
+          threshold: row_count >= 10
+          slack-alert: enabled
       - type: uniqueness
         config:
             columns:
               - segment
               - app_version
-            threshold: 10
+            threshold: row_count > 10
+            slack-alert: enabled
+      - type: sql_metrics
+        config:
+            sql: |
+                SELECT COUNT(*) as total_country_ar
+                FROM `data-monitoring-dev.dummy.active_users_aggregates_v1`
+                WHERE country = 'AR' AND DATE(submission_date) = '2020-01-13'
+            threshold: total_country_ar > 10
+            slack-alert: disabled

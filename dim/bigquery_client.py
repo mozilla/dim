@@ -42,7 +42,6 @@ class BigQueryClient:
             dataset if dataset else self.dataset,
             default_project=self.project,
         )
-        print(bq_dataset)
         kwargs: Dict[str, Any] = {
             "allow_large_results": True,
             "use_query_cache": False,

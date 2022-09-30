@@ -9,4 +9,4 @@ HAVING COUNT(*) > 1)
 
 SELECT *, "{{ project_id }}" as project_id, "{{ dataset_id }}" as dataset_id, "{{ table_id }}" as table_id,  "{{ dq_check }}" as dq_check, CURRENT_DATE() as created_date
 FROM CTE 
-WHERE  row_count > {{ threshold }}
+WHERE  {{ threshold }}
