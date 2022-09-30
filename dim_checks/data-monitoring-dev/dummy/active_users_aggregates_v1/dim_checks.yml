@@ -27,3 +27,4 @@ dim_config:
                 WHERE country = 'AR' AND DATE(submission_date) = '2020-01-13'
             threshold: total_country_ar > 10
             slack-alert: disabled
+            
