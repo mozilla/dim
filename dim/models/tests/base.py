@@ -7,11 +7,11 @@ from utils import check_directory_exists, create_directory, sql_to_file
 from typing import Any, Dict
 
 
-# CREDS = "test_service_account.json"
-GCP_PROJECT = "data-monitoring-dev"
+# CREDS = "test_servicemonitoring_account.json"
+GCP_PROJECT = "alekhya-test-1-322715"
 GENERATED_SQL_FOLDER = "generated_sql"
-DESTINATION_PROJECT = "data-monitoring-dev"
-DESTINATION_DATASET = "dummy"
+DESTINATION_PROJECT = "alekhya-test-1-322715"
+DESTINATION_DATASET = "monitoring_derived"
 DESTINATION_TABLE = "test_results"
 
 class Base:
