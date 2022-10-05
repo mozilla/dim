@@ -8,9 +8,9 @@ from typing import Any, Dict
 
 
 # CREDS = "test_servicemonitoring_account.json"
-GCP_PROJECT = "alekhya-test-1-322715"
+GCP_PROJECT = "data-monitoring-dev"
 GENERATED_SQL_FOLDER = "generated_sql"
-DESTINATION_PROJECT = "alekhya-test-1-322715"
+DESTINATION_PROJECT = "data-monitoring-dev"
 DESTINATION_DATASET = "monitoring_derived"
 DESTINATION_TABLE = "test_results"
 
