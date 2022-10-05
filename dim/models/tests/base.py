@@ -1,9 +1,9 @@
-from bigquery_client import BigQueryClient
+from dim.bigquery_client import BigQueryClient
 from google.cloud import bigquery
 from google import cloud
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
-from utils import check_directory_exists, create_directory, sql_to_file
+from dim.utils import check_directory_exists, create_directory, sql_to_file
 from typing import Any, Dict
 
 
@@ -39,6 +39,7 @@ class Base:
         generated_sql_folder = Path(GENERATED_SQL_FOLDER + "/" + self.config["project_id"]+"/"+ self.config["dataset_id"] +"/" + self.config["table_id"])
         check_directory_exists(generated_sql_folder) or create_directory(generated_sql_folder)
         target_file = generated_sql_folder.joinpath(f'{dq_check}.sql')
+        #print(self.config)
         generated_sql =  self.render_sql(dq_check, self.config)
         sql_to_file(target_file=target_file, sql=generated_sql)
         return target_file, generated_sql
@@ -46,6 +47,6 @@ class Base:
     def execute_test_sql(self, sql):
         self.bigquery.execute(
             sql,
-            destination_table = self.name,
+            destination_table = DESTINATION_TABLE,
             dataset=f"{DESTINATION_DATASET}",
         )
