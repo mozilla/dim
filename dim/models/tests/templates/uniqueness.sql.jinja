@@ -8,7 +8,7 @@ GROUP BY
 HAVING COUNT(*) > 1)
 
 
-SELECT *, "{{ project_id }}" as project_id,
+SELECT TO_JSON_STRING(CTE) as additional_information, "{{ project_id }}" as project_id,
 "{{ dataset_id }}" as dataset_id,
 "{{ table_id }}" as table_id,
 "{{ dq_check }}" as dq_check, 

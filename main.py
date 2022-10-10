@@ -42,10 +42,7 @@ def main():
                     table_id=table_id,
                     config=test["config"],
                     dataset_owner=dataset_owner)
-                if test_type not in "sql_metrics" :
-                     _, test_sql = dq_check.generate_test_sql()
-                elif test["config"]["sql"]:
-                    test_sql = test["config"]["sql"]
+                _, test_sql = dq_check.generate_test_sql()
                 dq_check.execute_test_sql(sql=test_sql)
 
 

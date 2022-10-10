@@ -6,7 +6,7 @@
 #
 attrs==22.1.0
     # via pytest
-black==22.8.0
+black==22.10.0
     # via dim
 cachetools==5.2.0
     # via google-auth
@@ -23,7 +23,7 @@ coverage[toml]==6.5.0
     # via -r -
 flake8==5.0.4
     # via dim
-google-api-core[grpc]==2.10.1
+google-api-core[grpc]==2.10.2
     # via
     #   google-cloud-bigquery
     #   google-cloud-bigquery-storage
@@ -141,7 +141,7 @@ tomli==2.0.1
     #   black
     #   coverage
     #   pytest
-typing-extensions==4.3.0
+typing-extensions==4.4.0
     # via black
 urllib3==1.26.12
     # via requests

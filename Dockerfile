@@ -4,20 +4,19 @@ LABEL maintainer="kignasiak@mozilla.com"
 
 WORKDIR /dim_app
 
-COPY requirements/requirements.in /tmp/requirements.in
-RUN python -m pip install --no-cache-dir -r /tmp/requirements.in \
-    && rm /tmp/requirements.in
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wkhtmltopdf && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY dim/[^test]* dim
+COPY requirements.txt requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
 
-# test staged used for running tests only
-FROM base AS test
+RUN mkdir -p /app
+WORKDIR /app
+ENV PYTHONPATH "${PYTHONPATH}:/app"
+COPY . .
 
-COPY requirements/dev-requirements.in /tmp/dev-requirements.in
-RUN python -m pip install --no-cache-dir -r /tmp/dev-requirements.in \
-    && rm /tmp/dev-requirements.in
+RUN python -m pip install --no-cache-dir .
 
-COPY dim/tests dim/tests
-
-# final stage for running in prod
-FROM base AS app
+ENTRYPOINT ["dim"]
+CMD ["run"]

@@ -11,8 +11,11 @@ class CustomSqlMetrics(Base):
         self.config["dataset_id"] = dataset_id
         self.config["table_id"] = table_id
         self.config["dq_check"] = "custom_sql_metric"
-        self.config[dataset_owner] = dataset_owner
+        self.config["dataset_owner"] = dataset_owner
         self.name = dataset_id + '__' + "custom_sql_metric"
+    
+    def generate_test_sql(self):
+        return super().generate_test_sql(dq_check="custom_sql")
 
     def execute_test_sql(self, sql):
         return super().execute_test_sql(sql=sql)
