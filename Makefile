@@ -1,5 +1,10 @@
 .DEFAULT_GOAL := help
 
+IMAGE_BASE     := dim
+IMAGE_VERSION  := $(if $(IMAGE_VERSION),$(IMAGE_VERSION),$(shell whoami)-dev)
+IMAGE_NAME     := $(IMAGE_BASE):$(IMAGE_VERSION)
+CONTAINER_NAME := $(IMAGE_BASE)
+IMAGE_REPO	   := gcr.io/data-monitoring-dev
 
 .PHONY: build
 build-app: ## Builds final app Docker image
@@ -36,19 +41,39 @@ upgrade-pip: setup-venv
 	@venv/bin/python -m pip install --upgrade pip
 
 install-requirements: setup-venv
-	@venv/bin/python -m pip install -r requirements/requirements.in
-
-install-dev-requirements: setup-venv
-	@venv/bin/python -m pip install -r requirements/dev-requirements.in
-
-setup-local-env: setup-venv upgrade-pip install-requirements install-dev-requirements
+	@venv/bin/python -m pip install -r requirements.in
 
 .PHONY: clean
 make clean:  # Removes local env
 	@rm -rf venv/
 
 # help source: https://stackoverflow.com/a/64996042
-.PHONY: help
+.PHONY: helppush
 help:
 	@echo "Available commands:"
 	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-30s\033[0m %s\n", $$1, $$2}'
+
+update:
+	./update_deps
+	pip install -e ".[testing]"
+
+image:
+	docker build -t ${IMAGE_NAME} .
+
+build: update pytest image 
+
+run:
+	docker run -v /Users/alekhya/Downloads/data-monitoring-dev-4b8f7f96a12e.json:/test_service_account.json \
+		-e GOOGLE_APPLICATION_CREDENTIALS="/test_service_account.json" \
+		--rm \
+		 ${IMAGE_NAME}
+
+shell:
+	docker run -it --entrypoint=/bin/bash --rm --name ${CONTAINER_NAME} ${IMAGE_NAME}
+
+stop:
+	docker stop ${CONTAINER_NAME}
+
+push:
+	docker tag ${IMAGE_NAME} ${IMAGE_REPO}/${IMAGE_NAME}
+	docker push ${IMAGE_REPO}/${IMAGE_NAME}

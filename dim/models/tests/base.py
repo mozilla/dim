@@ -1,51 +1,53 @@
-import jinja2
-from pathlib import Path
-from os import path
-import logging
+from dim.bigquery_client import BigQueryClient
 from google.cloud import bigquery
+from google import cloud
+from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
+from dim.utils import check_directory_exists, create_directory, sql_to_file
+from typing import Any, Dict
 
 
-# TODO: these should go into some sort of utils module
-def create_directory(path_to_create: Path) -> bool:
-    logging.info("Creating directory: %s" % path_to_create)
-    path_to_create.mkdir(parents=True)
-    return True
-
-def check_directory_exists(path_to_check: Path) -> bool:
-    return path.exists(path_to_check)
-
-def sql_to_file(target_file: Path, sql: str) -> bool:
-    with open(target_file, "w+") as _file:
-        _file.write(sql)
-
-    return True
-
-CREDS = "test_service_account.json"
+# CREDS = "test_servicemonitoring_account.json"
 GCP_PROJECT = "data-monitoring-dev"
 GENERATED_SQL_FOLDER = "generated_sql"
+DESTINATION_PROJECT = "data-monitoring-dev"
+DESTINATION_DATASET = "monitoring_derived"
+DESTINATION_TABLE = "test_results"
 
 class Base:
     TEMPLATES_LOC = "dim/models/tests/templates"
     TEMPLATE_FILE_EXTENSION = ".sql.jinja"
 
+
     def __init__(self, config: dict):
         self.config = config
 
-    def generate_test_sql(self, test_type):
+    @property
+    def bigquery(self):
+        """Return the BigQuery client instance."""
+        return BigQueryClient(project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET)
+
+    def render_sql(self, dq_check: str, render_kwargs: Dict[str, Any]):
+        """Render and return the SQL from a template."""
+        templateLoader = FileSystemLoader(self.TEMPLATES_LOC)
+        templateEnv = Environment(loader=templateLoader)
+        template = templateEnv.get_template(dq_check + self.TEMPLATE_FILE_EXTENSION)
+        sql = template.render(**render_kwargs)
+        return sql
+
+    def generate_test_sql(self, dq_check):
         generated_sql_folder = Path(GENERATED_SQL_FOLDER + "/" + self.config["project_id"]+"/"+ self.config["dataset_id"] +"/" + self.config["table_id"])
         check_directory_exists(generated_sql_folder) or create_directory(generated_sql_folder)
-
-        templateLoader = jinja2.FileSystemLoader(searchpath=self.TEMPLATES_LOC)
-        templateEnv = jinja2.Environment(loader=templateLoader)
-        template = templateEnv.get_template(test_type + self.TEMPLATE_FILE_EXTENSION)
-
-        target_file = generated_sql_folder.joinpath(f'{test_type}.sql')
-        generated_sql = template.render(self.config)
+        target_file = generated_sql_folder.joinpath(f'{dq_check}.sql')
+        print(self.config)
+        generated_sql =  self.render_sql(dq_check, self.config)
         sql_to_file(target_file=target_file, sql=generated_sql)
-
+        print(generated_sql)
         return target_file, generated_sql
 
     def execute_test_sql(self, sql):
-        # TODO: extract authentication logic into separate module
-        client = bigquery.Client(project=GCP_PROJECT)
-        return client.query(sql).result()
+        self.bigquery.execute(
+            sql,
+            destination_table = DESTINATION_TABLE, # the tables can be different for each dataset depending on the size of dataset
+            dataset=f"{DESTINATION_DATASET}",
+        )
