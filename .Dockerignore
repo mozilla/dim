@@ -1,0 +1,6 @@
+.vscode
+.circleci
+*.egg-info
+venv
+.gitignore
+*service*.json

@@ -153,7 +153,5 @@ tomli==2.0.1
     #   black
     #   coverage
     #   pytest
-typing-extensions==4.4.0
-    # via black
 urllib3==1.26.12
     # via requests

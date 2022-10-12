@@ -10,40 +10,38 @@ jobs:
       - image: cimg/python:3.10.6
     steps:
       - checkout
-      - setup_remote_docker
-      # - run: python --version
-      - &restore_venv_cache
-        restore_cache:
-          keys:
-            # when lock files change, use increasingly general
-            # patterns to restore cache
-            - &python_cache_key
-              # yamllint disable-line rule:line-length
-              python-3.10-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
-              # yamllint disable-line rule:line-length
-            - python-3.10-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
-            - python-3.10-packages-v1-{{ .Branch }}-
-            - python-3.10-packages-v1-main-
+      - setup_remote_docker:
+          docker_layer_caching: true
+      # # - &restore_venv_cache
+      #   restore_cache:
+      #     keys:
+      #       # when lock files change, use increasingly general
+      #       # patterns to restore cache
+      #       - &python_cache_key
+      #         python-3.10-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+      #       - python-3.10-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
+      #       - python-3.10-packages-v1-{{ .Branch }}-
+      #       - python-3.10-packages-v1-main-
       - &build
         run:
           name: Build Image
-          # machine:
-            # docker_layer_caching: true
           command: |
-            make image
+            make build-app
   test:
     docker: &docker
       - image: cimg/python:3.10.6
     steps:
-      - setup_remote_docker
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-          name: Dry run queries
+          name: Run unit tests
           command: |
             make test
 
 workflows:
   version: 2
-  build:
+  ci_workflow:
     jobs: &build_jobs
       - build:
           context: data-eng-circleci-tests
