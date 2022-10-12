@@ -15,7 +15,7 @@ DESTINATION_DATASET = "monitoring_derived"
 DESTINATION_TABLE = "test_results"
 
 class Base:
-    TEMPLATES_LOC = "dim/models/tests/templates"
+    TEMPLATES_LOC = "dim/models/dq_checks/templates"
     TEMPLATE_FILE_EXTENSION = ".sql.jinja"
 
 
