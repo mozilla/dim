@@ -1,0 +1,9 @@
+dim_config:
+  - owner: akommasani@mozilla.com
+    # tier: tier_1
+    tests:
+      - type: not_null
+        config:
+          columns:
+            - segment 
+          threshold: row_count >= 1
