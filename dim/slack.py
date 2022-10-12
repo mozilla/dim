@@ -5,7 +5,8 @@ import os
 import pandas as pd
 from google.cloud import bigquery
 
-DESTINATION_PROJECT = "alekhya-test-1-322715"
+DESTINATION_PROJECT = "data-monitoring-dev"
+
 class Slack:
 
 
