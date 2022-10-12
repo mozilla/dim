@@ -4,10 +4,11 @@ from datetime import datetime
 
 import yaml
 import os
-from dim.models.tests.not_null import NotNull
-from dim.models.tests.uniqueness import Uniqueness
-from dim.models.tests.custom_sql_metrics import CustomSqlMetrics
-from dim.models.tests.table_row_count import TableRowCount
+from dim.models.dq_checks.not_null import NotNull
+from dim.models.dq_checks.uniqueness import Uniqueness
+from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
+from dim.models.dq_checks.table_row_count import TableRowCount
+from dim.slack import Slack
 
 CONFIG_ROOT_PATH = "dim_checks"
 TEST_CLASS_MAPPING = {"not_null": NotNull, "uniqueness": Uniqueness, "sql_metrics" : CustomSqlMetrics, "table_row_count" : TableRowCount}
@@ -63,6 +64,14 @@ def run():
                     test_sql = test["config"]["sql"]
                 dq_check.execute_test_sql(sql=test_sql)
 
+
+@cli.command()
+def send_slack_alert():
+    slack = Slack()
+    df = slack.get_failed_dq_checks()
+    slack.format_and_publish_slack_message(df)
+
+   
 @cli.command()
 @click.argument("config_dir", required=True, type=click.Path(file_okay=False))
 def validate_config(config_dir):
