@@ -8,14 +8,14 @@ IMAGE_REPO	   := gcr.io/data-monitoring-dev
 
 .PHONY: build
 build-app: ## Builds final app Docker image
-	@docker build -t dim:latest-dev --target=app -f Dockerfile .
+	@docker build -t dim:latest-app --target=app -f Dockerfile .
 
-test: build-test ## Builds test Docker image and executes Python tests
-	@docker run dim:latest-test python -m pytest dim/tests/
-
-.PHONY: test
 build-test: ## Builds test Docker image containing all dev requirements
 	@docker build -t dim:latest-test --target=test -f Dockerfile .
+
+.PHONY: test
+test: build-test ## Builds test Docker image and executes Python tests
+	@docker run dim:latest-test python -m pytest tests/
 
 test-black: build-test
 	@docker run dim:latest-test python -m black --check dim/
@@ -36,12 +36,28 @@ ifneq ($(wildcard venv/.*),)
 else
 	@python -m venv venv
 endif
+	@venv/bin/python -m pip install pip-tools
 
 upgrade-pip: setup-venv
 	@venv/bin/python -m pip install --upgrade pip
 
-install-requirements: setup-venv
-	@venv/bin/python -m pip install -r requirements.in
+@PHONY: pip-compile
+pip-compile:
+	@venv/bin/pip-compile -o - - <<< '.' | \
+		grep -v 'file://' | \
+    	sed 's/pip-compile.*/update_deps/' > requirements/requirements.in
+	@venv/bin/pip-compile --generate-hashes -o requirements/requirements.txt requirements/requirements.in
+
+pip-compile-dev:
+	@venv/bin/pip-compile -o - - <<< '.[testing]' | \
+		grep -v 'file://' | \
+    	sed 's/pip-compile.*/update_deps/' > requirements/dev-requirements.in
+	@venv/bin/pip-compile --generate-hashes -o requirements/dev-requirements.txt requirements/dev-requirements.in
+
+install-requirements: setup-venv upgrade-pip
+	@venv/bin/python -m pip install -r requirements/requirements.txt
+install-requirements-dev: setup-venv upgrade-pip
+	@venv/bin/python -m pip install -r requirements/dev-requirements.txt
 
 .PHONY: clean
 make clean:  # Removes local env
@@ -60,7 +76,7 @@ update:
 image:
 	docker build -t ${IMAGE_NAME} .
 
-build: update pytest image 
+build: update pytest image
 
 run:
 	docker run -v /Users/alekhya/Downloads/data-monitoring-dev-4b8f7f96a12e.json:/test_service_account.json \
