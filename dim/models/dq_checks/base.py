@@ -39,10 +39,8 @@ class Base:
         generated_sql_folder = Path(GENERATED_SQL_FOLDER + "/" + self.config["project_id"]+"/"+ self.config["dataset_id"] +"/" + self.config["table_id"])
         check_directory_exists(generated_sql_folder) or create_directory(generated_sql_folder)
         target_file = generated_sql_folder.joinpath(f'{dq_check}.sql')
-        print(self.config)
         generated_sql =  self.render_sql(dq_check, self.config)
         sql_to_file(target_file=target_file, sql=generated_sql)
-        print(generated_sql)
         return target_file, generated_sql
 
     def execute_test_sql(self, sql):

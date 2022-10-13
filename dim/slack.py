@@ -7,6 +7,8 @@ from google.cloud import bigquery
 
 DESTINATION_PROJECT = "data-monitoring-dev"
 
+
+
 class Slack:
 
 
@@ -26,16 +28,18 @@ class Slack:
         return df
 
 
-    def format_and_publish_slack_message(self, data):
+    def format_and_publish_slack_message(self, data, channels, slack_handles):
             token = os.environ["SLACK_BOT_TOKEN"]
             slack_client = WebClient(token=token)
             if pd.to_numeric(data.shape[0]) > 0:
                 df_tab  = tabulate([list(row) for row in data.values], headers=list(data.columns), tablefmt="grid", stralign="center")
-            else:
-                df_tab = "No issue found"
-            slack_client.chat_postMessage(
-            channel = "#data-monitoring-mvp",        #TO-DO replace with dataset owner id
-            text = ':alert: The following DQ check failed\n'
-             + df_tab, 
-            as_user = True
-            )
+                slack_handle_string = list(map(( lambda x: '<@' + x + '>'), slack_handles))
+                print(slack_handle_string)
+                for channel in channels:
+                    slack_client.chat_postMessage(
+                    channel = channel,        #TO-DO replace with dataset owner id
+                    text = f':alert: {slack_handle_string} The following DQ check failed\n'
+                    + df_tab, 
+                    as_user = True
+                    )
+                
