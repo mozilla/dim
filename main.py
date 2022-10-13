@@ -25,7 +25,6 @@ def get_all_paths_yaml(name, config_root_path: str):
 def read_config(config_path: str):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-        print(config)
     return config
 
 
@@ -36,7 +35,7 @@ def main():
     # TODO: validate config, correct keys + types --add a function
         project_id, dataset_id, table_id = config_path.split("/")[1:-1]
         for config in config["dim_config"]:
-            dataset_owner = config["owner"]
+            dataset_owner = config["owner"]["email"]
             for test in config["tests"]:
                 test_type = test["type"]
                 dq_check = TEST_CLASS_MAPPING[test_type](
@@ -45,13 +44,17 @@ def main():
                     table_id=table_id,
                     config=test["config"],
                     dataset_owner=dataset_owner)
-                _, test_sql = dq_check.generate_test_sql()
-                dq_check.execute_test_sql(sql=test_sql)
+                # _, test_sql = dq_check.generate_test_sql()
+                # dq_check.execute_test_sql(sql=test_sql)
+                if test["config"]["slack_alert"].lower() == 'enabled':
+                    slack_handles = config["owner"]["slack_handle"]
+                    channel = test["config"]["channel"]
+                    send_slack_alert(channel, slack_handles)
 
-def send_slack_alert():
+def send_slack_alert(channel, slack_handles):
     slack = Slack()
     df = slack.get_failed_dq_checks()
-    slack.format_and_publish_slack_message(df)
+    slack.format_and_publish_slack_message(df, channel, slack_handles=slack_handles)
 
 
 if __name__ == "__main__":

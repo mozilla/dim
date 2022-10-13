@@ -1,29 +1,30 @@
 dim_config:
-  - owner: akommasani@mozilla.com
+  - owner: {"email":["akommasani@mozilla.com"], slack_handle:["Alekhya","kik"]}
     # tier: tier_1
     tests:
       - type: table_row_count
         config:
-          threshold: row_count >= 10
-          slack_alert: enabled
+          threshold: row_count <= 10
+          slack_alert: disabled
       - type: not_null
         config:
           columns:
             - segment 
           threshold: row_count >= 10
           slack_alert: enabled
+          channel: ["U029TU25FTP"]
       - type: uniqueness
         config:
             columns:
               - segment
               - app_version
             threshold: row_count > 10
-            slack_alert: enabled
+            slack_alert: disabled
       - type: sql_metrics
         config:
             sql: |
-                SELECT COUNT(*) as total_country_ar
+                SELECT COUNT(*) as total_count
                 FROM `data-monitoring-dev.dummy.active_users_aggregates_v1`
                 WHERE country = 'AR' AND DATE(submission_date) = '2020-01-13'
-            threshold: total_country_ar > 3000
+            threshold: total_count > 3000
             slack_alert: disabled
