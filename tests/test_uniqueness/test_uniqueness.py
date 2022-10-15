@@ -15,10 +15,11 @@ def test_uniqueness_pass():
                     dataset_owner=dataset_owner,
                     date_partition_parameter='2022-01-13')
         _, generated_sql = dq_check.generate_test_sql()
-        print(generated_sql)
+        
 
         expected_sql = dedent("""WITH CTE AS (SELECT
-                                COUNT(*) AS row_count, segment, app_version  
+                                COUNT(*) AS row_count,
+                                segment, app_version  
                                 FROM `test_project.test_dataset.test_table`
                                 WHERE
                                 submission_date = DATE("2022-01-13")
@@ -36,5 +37,6 @@ def test_uniqueness_pass():
                                 CURRENT_DATETIME() as created_date
                                 FROM CTE 
                                 WHERE row_count >= 1""")
+
         assert expected_sql.replace(' ','').strip() == generated_sql.replace(' ','').strip()
 test_uniqueness_pass()
