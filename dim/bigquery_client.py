@@ -30,6 +30,9 @@ class BigQueryClient:
     def create_table(self, table):
         return self.client.create_table(table)
 
+    def fetch_results(self, sql):
+        return self.client.query(sql)
+
     def execute(
         self,
         query: str,
@@ -50,7 +53,9 @@ class BigQueryClient:
         if destination_table:
             kwargs["destination"] = bq_dataset.table(destination_table)
             kwargs["write_disposition"] = bigquery.job.WriteDisposition.WRITE_APPEND
-            kwargs["schema_update_options"] = bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION
+            kwargs[
+                "schema_update_options"
+            ] = bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION
 
         if write_disposition:
             kwargs["write_disposition"] = write_disposition
