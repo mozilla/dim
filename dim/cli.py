@@ -4,12 +4,14 @@ import os
 import click
 import yaml
 
+from datetime import datetime, timedelta
 from dim.bigquery_client import BigQueryClient
 from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
 from dim.models.dq_checks.not_null import NotNull
 from dim.models.dq_checks.table_row_count import TableRowCount
 from dim.models.dq_checks.uniqueness import Uniqueness
 from dim.slack import Slack
+import error
 
 CONFIG_ROOT_PATH = "dim_checks"
 TEST_CLASS_MAPPING = {
@@ -41,7 +43,6 @@ def get_failed_dq_checks(project, dataset, table, test_type, date_partition_para
     print(df)
     return df
 
-
 def get_all_paths_yaml(extension, config_root_path: str):
     result = []
     for root, dirs, files in os.walk(config_root_path):
@@ -50,12 +51,10 @@ def get_all_paths_yaml(extension, config_root_path: str):
                 result.append(os.path.join(root, file))
     return result
 
-
 def read_config(config_path: str):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
     return config
-
 
 def send_slack_alert(
     channel, project, dataset, table, test_type, slack_handles, date_partition_parameter
@@ -67,15 +66,6 @@ def send_slack_alert(
         project, dataset, table, test_type, date_partition_parameter
     )
     slack.format_and_publish_slack_message(df, channel, slack_handles=slack_handles)
-
-
-# logging.basicConfig(
-#     filename="Dim.log",
-#     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-#     encoding="utf-8",
-#     level=logging.INFO,
-# )
-
 
 @click.group()
 def cli():
@@ -131,3 +121,28 @@ def run(project, dataset, table, date_partition_parameter):
 @click.argument("config_dir", required=True, type=click.Path(file_okay=False))
 def validate_config(config_dir):
     logging.info(f"Validating config files in: {config_dir}")
+
+
+@cli.command()
+@click.option("--project", default="data-monitoring-dev")
+@click.option("--dataset")
+@click.option("--table")
+@click.option("--start_date")
+@click.option("--end_date")
+def backfill(project,
+    dataset,
+    table,
+    start_date,
+    end_date):
+
+    if (start_date > end_date ):
+        raise error.NoStartDateException()
+
+    for date in [
+        start_date + timedelta(days=d) for d in range(0, (end_date - start_date).days + 1)
+    ]:
+        logging.info(f"Backfill started for the date {date}")
+
+        run(project, dataset, table, date)
+
+        logging.info(f"Backfill completed for the date {date}")
