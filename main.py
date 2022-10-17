@@ -1,6 +1,6 @@
 """Generate the sql from metadata. """
 
-import datetime
+from datetime import timedelta, datetime
 import os
 
 import yaml
@@ -11,6 +11,8 @@ from dim.models.dq_checks.not_null import NotNull
 from dim.models.dq_checks.table_row_count import TableRowCount
 from dim.models.dq_checks.uniqueness import Uniqueness
 from dim.slack import Slack
+import dim.error as error
+import logging
 
 CONFIG_ROOT_PATH = "dim_checks"
 TEST_CLASS_MAPPING = {
@@ -19,6 +21,7 @@ TEST_CLASS_MAPPING = {
     "custom_sql_metric": CustomSqlMetrics,
     "table_row_count": TableRowCount,
 }
+
 DESTINATION_PROJECT = "data-monitoring-dev"
 DESTINATION_DATASET = "monitoring_derived"
 
@@ -32,7 +35,7 @@ def get_failed_dq_checks(project, dataset, table, test_type, date_partition_para
         AND project = '{project}'
         AND dataset = '{dataset}'
         AND dq_check = '{test_type}'
-        AND table = '{table}
+        AND table = '{table}'
         """
     bigquery = BigQueryClient(project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET)
     job = bigquery.fetch_results(sql)
@@ -56,7 +59,7 @@ def read_config(config_path: str):
     return config
 
 
-def main(project, dataset, date_partition_parameter):
+def run(project, dataset, date_partition_parameter):
     extension = ".yml"
     config_paths = CONFIG_ROOT_PATH + "/" + project + "/" + dataset
     for config_path in get_all_paths_yaml(extension, config_paths):
@@ -85,6 +88,7 @@ def main(project, dataset, date_partition_parameter):
                         channel,
                         project,
                         dataset,
+                        table,
                         test_type,
                         slack_handles,
                         date_partition_parameter,
@@ -92,22 +96,40 @@ def main(project, dataset, date_partition_parameter):
 
 
 def send_slack_alert(
-    channel, project, dataset, test_type, slack_handles, date_partition_parameter
+    channel, project, dataset, table, test_type, slack_handles, date_partition_parameter
 ):
     slack = Slack()
     print(test_type)
-    get_failed_dq_checks(project, dataset, test_type, date_partition_parameter)
-    df = get_failed_dq_checks(project, dataset, test_type, date_partition_parameter)
+    df = get_failed_dq_checks(project, dataset, table, test_type, date_partition_parameter)
     print(df)
     print(slack_handles)
     slack.format_and_publish_slack_message(df, channel, slack_handles=slack_handles)
+
+
+def backfill(project,
+    dataset,
+    table,
+    start_date,
+    end_date):
+
+    if (start_date > end_date ):
+        raise error.NoStartDateException()
+
+    for date in [
+        start_date + timedelta(days=d) for d in range(0, (end_date - start_date).days + 1)
+    ]:
+        logging.info(f"Backfill started for the date {date}")
+
+        run(project, dataset, table, date)
+
+        logging.info(f"Backfill completed for the date {date}")
 
 
 if __name__ == "__main__":
     project = "data-monitoring-dev"
     dataset = "dummy"
     date_partition_parameter = "2022-01-13"
-    date_partition_parameter = datetime.datetime.strptime(
+    date_partition_parameter = datetime.strptime(
         date_partition_parameter, "%Y-%m-%d"
     ).date()
-    main(project, dataset, date_partition_parameter)
+    run(project, dataset, date_partition_parameter)

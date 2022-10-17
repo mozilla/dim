@@ -4,7 +4,7 @@ import os
 import click
 import yaml
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from dim.bigquery_client import BigQueryClient
 from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
 from dim.models.dq_checks.not_null import NotNull
@@ -61,7 +61,6 @@ def send_slack_alert(
 ):
     slack = Slack()
     print(test_type)
-    get_failed_dq_checks(project, dataset, table, test_type, date_partition_parameter)
     df = get_failed_dq_checks(
         project, dataset, table, test_type, date_partition_parameter
     )

@@ -6,12 +6,6 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from tabulate import tabulate
 
-# from dim.bigquery_client import BigQueryClient
-
-DESTINATION_PROJECT = "data-monitoring-dev"
-DESTINATION_DATASET = "monitoring_derived"
-
-
 class Slack:
     def __init__(self):
         pass
