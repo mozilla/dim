@@ -52,7 +52,9 @@ class BigQueryClient:
 
         if destination_table:
             kwargs["destination"] = bq_dataset.table(destination_table)
-            kwargs["write_disposition"] = bigquery.job.WriteDisposition.WRITE_APPEND
+            kwargs[
+                "write_disposition"
+            ] = bigquery.job.WriteDisposition.WRITE_APPEND
             kwargs[
                 "schema_update_options"
             ] = bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION
@@ -60,6 +62,8 @@ class BigQueryClient:
         if write_disposition:
             kwargs["write_disposition"] = write_disposition
 
-        config = bigquery.job.QueryJobConfig(default_dataset=bq_dataset, **kwargs)
+        config = bigquery.job.QueryJobConfig(
+            default_dataset=bq_dataset, **kwargs
+        )
         job = self.client.query(query, config)
         job.result()

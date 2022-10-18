@@ -26,10 +26,21 @@ DESTINATION_DATASET = "monitoring_derived"
 logging.basicConfig(level=logging.INFO)
 
 
-def get_failed_dq_checks(project, dataset, table, test_type, date_partition_parameter):
-    # TO-DO if tables are different for each dataset then loop through all of them
+def get_failed_dq_checks(
+    project, dataset, table, test_type, date_partition_parameter
+):
+    # TO-DO if tables are different
+    # for each dataset then loop through all of them
     sql = f"""
-        SELECT additional_information, project, dataset, table, dq_check, dataset_owner, slack_alert, created_date
+        SELECT
+            additional_information,
+            project,
+            dataset,
+            table,
+            dq_check,
+            dataset_owner,
+            slack_alert,
+            created_date,
         FROM `monitoring_derived.test_results`
         WHERE DATE(created_date) = CURRENT_DATE()
         AND project = '{project}'
@@ -37,11 +48,14 @@ def get_failed_dq_checks(project, dataset, table, test_type, date_partition_para
         AND dq_check = '{test_type}'
         AND table = '{table}'
         """
-    bigquery = BigQueryClient(project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET)
+    bigquery = BigQueryClient(
+        project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
+    )
     job = bigquery.fetch_results(sql)
     df = job.result().to_dataframe()
     print(df)
     return df
+
 
 def get_all_paths_yaml(extension, config_root_path: str):
     result = []
@@ -53,24 +67,35 @@ def get_all_paths_yaml(extension, config_root_path: str):
             if extension in file:
                 result.append(os.path.join(root, file))
     if not result:
-        logging.info(f"No config files found !")
+        logging.info("No config files found !")
     else:
         return result
+
 
 def read_config(config_path: str):
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
     return config
 
+
 def send_slack_alert(
-    channel, project, dataset, table, test_type, slack_handles, date_partition_parameter
+    channel,
+    project,
+    dataset,
+    table,
+    test_type,
+    slack_handles,
+    date_partition_parameter,
 ):
     slack = Slack()
     print(test_type)
     df = get_failed_dq_checks(
         project, dataset, table, test_type, date_partition_parameter
     )
-    slack.format_and_publish_slack_message(df, channel, slack_handles=slack_handles)
+    slack.format_and_publish_slack_message(
+        df, channel, slack_handles=slack_handles
+    )
+
 
 @click.group()
 def cli():
@@ -84,11 +109,15 @@ def cli():
 @click.option("--date_partition_parameter")
 def run(project, dataset, table, date_partition_parameter):
     extension = ".yml"
-    config_paths = CONFIG_ROOT_PATH + "/" + project + "/" + dataset + "/" + table
+    config_paths = (
+        CONFIG_ROOT_PATH + "/" + project + "/" + dataset + "/" + table
+    )
     for config_path in get_all_paths_yaml(extension, config_paths):
         config = read_config(config_path=config_path)
         project, dataset, table = config_path.split("/")[1:-1]
-        logging.info(f"Starting the data checks - {project}, {dataset}, {table}")
+        logging.info(
+            f"Starting the data checks - {project}, {dataset}, {table}"
+        )
         for config in config["dim_config"]:
             # TODO: validate config, correct keys + types --add a function
             dataset_owner = config["owner"]["email"]
@@ -134,17 +163,14 @@ def validate_config(config_dir):
 @click.option("--table")
 @click.option("--start_date")
 @click.option("--end_date")
-def backfill(project,
-    dataset,
-    table,
-    start_date,
-    end_date):
+def backfill(project, dataset, table, start_date, end_date):
 
-    if (start_date > end_date ):
+    if start_date > end_date:
         raise error.NoStartDateException()
 
     for date in [
-        start_date + timedelta(days=d) for d in range(0, (end_date - start_date).days + 1)
+        start_date + timedelta(days=d)
+        for d in range(0, (end_date - start_date).days + 1)
     ]:
         logging.info(f"Backfill started for the date {date}")
 

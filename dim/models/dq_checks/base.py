@@ -16,6 +16,7 @@ DESTINATION_TABLE = "test_results"
 
 logging.basicConfig(level=logging.INFO)
 
+
 class Base:
     TEMPLATES_LOC = "dim/models/dq_checks/templates"
     TEMPLATE_FILE_EXTENSION = ".sql.jinja"
@@ -26,13 +27,17 @@ class Base:
     @property
     def bigquery(self):
         """Return the BigQuery client instance."""
-        return BigQueryClient(project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET)
+        return BigQueryClient(
+            project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
+        )
 
     def render_sql(self, dq_check: str, render_kwargs: Dict[str, Any]):
         """Render and return the SQL from a template."""
         templateLoader = FileSystemLoader(self.TEMPLATES_LOC)
         templateEnv = Environment(loader=templateLoader)
-        template = templateEnv.get_template(dq_check + self.TEMPLATE_FILE_EXTENSION)
+        template = templateEnv.get_template(
+            dq_check + self.TEMPLATE_FILE_EXTENSION
+        )
         sql = template.render(**render_kwargs)
         return sql
 
@@ -59,6 +64,6 @@ class Base:
         logging.info(dir(self.bigquery))
         self.bigquery.execute(
             sql,
-            destination_table=DESTINATION_TABLE,  # the tables can be different for each dataset depending on the size of dataset
+            destination_table=DESTINATION_TABLE,  # the tables can be different for each dataset depending on the size of dataset  # noqa: E501
             dataset=f"{DESTINATION_DATASET}",
         )

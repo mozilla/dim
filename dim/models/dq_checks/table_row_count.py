@@ -1,12 +1,18 @@
 from dim.models.dq_checks.base import Base
 
 
-## TODO: validate config, correct keys + types
+# TODO: validate config, correct keys + types
 class TableRowCount(Base):
     TEMPLATE_FILE = "table_row_count" + Base.TEMPLATE_FILE_EXTENSION
 
     def __init__(
-        self, project, dataset, table, dataset_owner, date_partition_parameter, config
+        self,
+        project,
+        dataset,
+        table,
+        dataset_owner,
+        date_partition_parameter,
+        config,
     ):
         super().__init__(config)
         self.config["project"] = project
