@@ -13,8 +13,13 @@ build-app: ## Builds final app Docker image
 build-test: ## Builds test Docker image containing all dev requirements
 	@docker build -t dim:latest-test --target=test -f Dockerfile .
 
+image:
+	docker build -t ${IMAGE_NAME} .
+
+build: update pytest image
+
 .PHONY: test
-test: build-test ## Builds test Docker image and executes Python tests
+test-unit: build-test ## Builds test Docker image and executes Python tests
 	@docker run dim:latest-test python -m pytest tests/
 
 test-black: build-test
@@ -28,6 +33,9 @@ test-mypy: build-test
 
 test-all: build-test test test-black test-flake8 test-mypy
 
+format-black:
+	@python -m black dim/
+
 # For setting up local environment
 setup-venv:
 ifneq ($(wildcard venv/.*),)
@@ -35,8 +43,8 @@ ifneq ($(wildcard venv/.*),)
 	@echo "run 'make clean' then re-run this command"
 else
 	@python -m venv venv
-endif
 	@venv/bin/python -m pip install pip-tools
+endif
 
 upgrade-pip: setup-venv
 	@venv/bin/python -m pip install --upgrade pip
@@ -54,10 +62,12 @@ pip-compile-dev:
     	sed 's/pip-compile.*/update_deps/' > requirements/dev-requirements.in
 	@venv/bin/pip-compile --generate-hashes -o requirements/dev-requirements.txt requirements/dev-requirements.in
 
-install-requirements: setup-venv upgrade-pip
+install-requirements: setup-venv upgrade-pip pip-compile
 	@venv/bin/python -m pip install -r requirements/requirements.txt
-install-requirements-dev: setup-venv upgrade-pip
+install-requirements-dev: setup-venv upgrade-pip pip-compile pip-compile-dev
 	@venv/bin/python -m pip install -r requirements/dev-requirements.txt
+
+update-local-env: install-requirements install-requirements-dev
 
 .PHONY: clean
 make clean:  # Removes local env
@@ -69,14 +79,6 @@ help:
 	@echo "Available commands:"
 	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-30s\033[0m %s\n", $$1, $$2}'
 
-update:
-	./update_deps
-	pip install -e ".[testing]"
-
-image:
-	docker build -t ${IMAGE_NAME} .
-
-build: update pytest image
 
 run:
 	docker run -v /Users/alekhya/Downloads/data-monitoring-dev-4b8f7f96a12e.json:/test_service_account.json \
