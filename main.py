@@ -119,9 +119,7 @@ def backfill(project,
         start_date + timedelta(days=d) for d in range(0, (end_date - start_date).days + 1)
     ]:
         logging.info(f"Backfill started for the date {date}")
-
         run(project, dataset, table, date)
-
         logging.info(f"Backfill completed for the date {date}")
 
 
