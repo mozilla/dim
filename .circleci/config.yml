@@ -33,7 +33,7 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: Run check code formatting
+          name: Check code formatting
           command: |
             make test-black
   test-linter:
@@ -43,9 +43,19 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: Run linter checks
+          name: Linter checks
           command: |
             make test-flake8
+  test-isort:
+    docker: *docker
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Check import sorting
+          command: |
+            make test-isort
 
   # test-typing:
   #   docker: *docker
@@ -54,7 +64,7 @@ jobs:
   #     - setup_remote_docker:
   #         docker_layer_caching: true
   #     - run:
-  #         name: Run type checks
+  #         name: Check typing
   #         command: |
   #           make test-mypy
 
@@ -91,6 +101,9 @@ workflows:
       - test-linter:
           requires:
             - build
+      - test-isort:
+          requires:
+            - build
       # - test-typing:
       #     requires:
       #       - build
@@ -101,4 +114,5 @@ workflows:
             - test-unit
             - test-format
             - test-linter
+            - test-isort
             # - test-typing
