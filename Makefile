@@ -29,18 +29,20 @@ test-flake8: build-test
 	@docker run dim:latest-test python -m flake8 dim/ tests/
 
 test-isort: build-test
-	@docker run dim:latest-test python -m isort dim/ tests/
+	@docker run dim:latest-test python -m isort --check dim/ tests/
 
 test-mypy: build-test
 	@docker run dim:latest-test python -m mypy dim/ tests/
 
-test-all: build-test test-unit test-black test-flake8 test-isort #test-mypy
+test-all: build-test test-unit test-flake8 test-isort test-black #test-mypy
 
 format-black:
 	@venv/bin/python -m black dim/ tests/
 
 format-isort:
 	@venv/bin/isort dim/ tests/
+
+format: format-isort format-black
 
 # For setting up local environment
 setup-venv:

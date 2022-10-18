@@ -34,7 +34,6 @@ FROM base AS app
 COPY dim/ dim
 COPY dim_checks/ dim_checks
 
-COPY pyproject.toml .
 RUN python -m pip install --no-cache-dir .
 
 ENTRYPOINT ["dim"]

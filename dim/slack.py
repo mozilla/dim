@@ -1,12 +1,12 @@
 import os
 
-# from datetime import date
-
 import pandas as pd
 from slack_sdk import WebClient
 
 # from slack_sdk.errors import SlackApiError
 from tabulate import tabulate
+
+# from datetime import date
 
 
 class Slack:

@@ -1,20 +1,23 @@
-WITH CTE AS (SELECT
-COUNT(*) AS row_count,
-{% for column in columns %}{{ column }} {{ "," if not loop.last else "" }} {% endfor %}
-FROM `{{ project }}.{{ dataset }}.{{ table }}`
-WHERE
-submission_date = DATE("{{ partition }}")
-GROUP BY 
-{% for column in columns %}{{ column }} {{ "," if not loop.last else "" }} {% endfor %}
-HAVING COUNT(*) > 1)
+WITH CTE AS (
+    SELECT
+        COUNT(*) AS row_count,{% for column in columns %}
+        {{ column }},{% endfor %}
+    FROM `{{ project }}.{{ dataset }}.{{ table }}`
+    WHERE
+        submission_date = DATE("{{ partition }}")
+    GROUP BY{% for column in columns %}
+        {{ column }}{{ "," if not loop.last else "" }}{% endfor %}
+    HAVING COUNT(*) > 1
+)
 
-
-SELECT TO_JSON_STRING(CTE) as additional_information, "{{ project }}" as project,
-"{{ dataset }}" as dataset,
-"{{ table }}" as table,
-"{{ dq_check }}" as dq_check, 
-"{{ dataset_owner }}" as dataset_owner,
-"{{ slack_alert }}" as slack_alert,
-CURRENT_DATETIME() as created_date
-FROM CTE 
-WHERE  {{ threshold }}
+SELECT
+    TO_JSON_STRING(CTE) as additional_information,
+    "{{ project }}" as project,
+    "{{ dataset }}" as dataset,
+    "{{ table }}" as table,
+    "{{ dq_check }}" as dq_check,
+    "{{ dataset_owner }}" as dataset_owner,
+    "{{ slack_alert }}" as slack_alert,
+    CURRENT_DATETIME() as created_date
+FROM CTE
+WHERE {{ threshold }}

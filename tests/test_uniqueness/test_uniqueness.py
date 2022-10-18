@@ -32,7 +32,7 @@ def test_uniqueness_pass():
     _, generated_sql = dq_check.generate_test_sql()
 
     expected_sql = dedent(
-        """
+        """\
         WITH CTE AS (
             SELECT
                 COUNT(*) AS row_count,
@@ -40,9 +40,10 @@ def test_uniqueness_pass():
                 app_version,
             FROM `test_project.test_dataset.test_table`
             WHERE
-            submission_date = DATE("2022-01-13")
+                submission_date = DATE("2022-01-13")
             GROUP BY
-            segment,app_version
+                segment,
+                app_version
             HAVING COUNT(*) > 1
         )
 
@@ -54,15 +55,9 @@ def test_uniqueness_pass():
             "uniqueness" as dq_check,
             "['akommasani@mozilla.com']" as dataset_owner,
             "" as slack_alert,
-        CURRENT_DATETIME() as created_date
+            CURRENT_DATETIME() as created_date
         FROM CTE
         WHERE row_count >= 1"""
     )
 
-    assert (
-        expected_sql.replace(" ", "").strip()
-        == generated_sql.replace(" ", "").strip()
-    )
-
-
-test_uniqueness_pass()
+    assert generated_sql == expected_sql

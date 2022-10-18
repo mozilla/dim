@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Any, Dict
 
@@ -5,7 +6,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from dim.bigquery_client import BigQueryClient
 from dim.utils import check_directory_exists, create_directory, sql_to_file
-import logging
 
 # CREDS = "test_servicemonitoring_account.json"
 GCP_PROJECT = "data-monitoring-dev"

@@ -1,6 +1,6 @@
 import logging
-from pathlib import Path
 from os import path
+from pathlib import Path
 
 
 def create_directory(path_to_create: Path) -> bool:
