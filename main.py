@@ -120,7 +120,7 @@ def backfill(project,
     ]:
         logging.info(f"Backfill started for the date {date}")
 
-        run(project, dataset, table, date)
+        # run(project, dataset, date)
 
         logging.info(f"Backfill completed for the date {date}")
 
@@ -128,8 +128,18 @@ def backfill(project,
 if __name__ == "__main__":
     project = "data-monitoring-dev"
     dataset = "dummy"
+    table ="active_users_aggregates_v1"
     date_partition_parameter = "2022-01-13"
     date_partition_parameter = datetime.strptime(
         date_partition_parameter, "%Y-%m-%d"
     ).date()
-    run(project, dataset, date_partition_parameter)
+    start_date = "2021-01-10"
+    start_date = datetime.strptime(
+        start_date, "%Y-%m-%d"
+    ).date()
+    end_date = "2021-01-12"
+    end_date = datetime.strptime(
+        end_date, "%Y-%m-%d"
+    ).date()
+    # run(project, dataset, date_partition_parameter)
+    backfill(project, dataset, table, start_date, end_date)

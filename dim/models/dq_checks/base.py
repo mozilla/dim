@@ -5,6 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from dim.bigquery_client import BigQueryClient
 from dim.utils import check_directory_exists, create_directory, sql_to_file
+import logging
 
 # CREDS = "test_servicemonitoring_account.json"
 GCP_PROJECT = "data-monitoring-dev"
@@ -13,6 +14,7 @@ DESTINATION_PROJECT = "data-monitoring-dev"
 DESTINATION_DATASET = "monitoring_derived"
 DESTINATION_TABLE = "test_results"
 
+logging.basicConfig(level=logging.INFO)
 
 class Base:
     TEMPLATES_LOC = "dim/models/dq_checks/templates"
@@ -53,6 +55,8 @@ class Base:
         return target_file, generated_sql
 
     def execute_test_sql(self, sql):
+        logging.info(sql)
+        logging.info(dir(self.bigquery))
         self.bigquery.execute(
             sql,
             destination_table=DESTINATION_TABLE,  # the tables can be different for each dataset depending on the size of dataset

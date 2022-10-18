@@ -17,6 +17,8 @@ RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt \
 
 COPY dim/ dim
 
+COPY dim_checks/ dim_checks
+
 # test stage used for running tests only
 FROM base AS test
 

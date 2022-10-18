@@ -11,7 +11,7 @@ from dim.models.dq_checks.not_null import NotNull
 from dim.models.dq_checks.table_row_count import TableRowCount
 from dim.models.dq_checks.uniqueness import Uniqueness
 from dim.slack import Slack
-import error
+import dim.error as error
 
 CONFIG_ROOT_PATH = "dim_checks"
 TEST_CLASS_MAPPING = {
@@ -45,11 +45,17 @@ def get_failed_dq_checks(project, dataset, table, test_type, date_partition_para
 
 def get_all_paths_yaml(extension, config_root_path: str):
     result = []
+    logging.info(config_root_path)
     for root, dirs, files in os.walk(config_root_path):
+        print(f"{files}")
         for file in files:
+            print(f"{file}")
             if extension in file:
                 result.append(os.path.join(root, file))
-    return result
+    if not result:
+        logging.info(f"No config files found !")
+    else:
+        return result
 
 def read_config(config_path: str):
     with open(config_path, "r") as f:
