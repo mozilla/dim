@@ -1,19 +1,22 @@
 from dim.models.dq_checks.base import Base
 
+
 ## TODO: validate config, correct keys + types
 class CustomSqlMetrics(Base):
     TEMPLATE_FILE = "custom_sql_metrics" + Base.TEMPLATE_FILE_EXTENSION
 
-    def __init__(self, project_id, dataset_id, table_id, dataset_owner, config):
+    def __init__(
+        self, project, dataset, table, dataset_owner, date_partition_parameter, config
+    ):
         super().__init__(config)
-        self.config["partition"] = "2020-01-13"
-        self.config["project_id"] = project_id
-        self.config["dataset_id"] = dataset_id
-        self.config["table_id"] = table_id
+        self.config["partition"] = date_partition_parameter
+        self.config["project"] = project
+        self.config["dataset"] = dataset
+        self.config["table"] = table
         self.config["dq_check"] = "custom_sql_metric"
         self.config["dataset_owner"] = dataset_owner
-        self.name = dataset_id + '__' + "custom_sql_metric"
-    
+        self.name = dataset + "__" + "custom_sql_metric"
+
     def generate_test_sql(self):
         return super().generate_test_sql(dq_check="custom_sql")
 

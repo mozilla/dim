@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 IMAGE_BASE     := dim
-IMAGE_VERSION  := $(if $(IMAGE_VERSION),$(IMAGE_VERSION),$(shell whoami)-dev)
+IMAGE_VERSION  := latest-app
 IMAGE_NAME     := $(IMAGE_BASE):$(IMAGE_VERSION)
 CONTAINER_NAME := $(IMAGE_BASE)
 IMAGE_REPO	   := gcr.io/data-monitoring-dev

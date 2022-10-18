@@ -33,4 +33,4 @@ COPY pyproject.toml .
 RUN python -m pip install --no-cache-dir .
 
 ENTRYPOINT ["dim"]
-CMD ["run"]
+# CMD ["run"]

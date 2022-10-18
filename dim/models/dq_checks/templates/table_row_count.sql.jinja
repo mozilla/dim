@@ -1,16 +1,16 @@
 WITH CTE AS (SELECT
-  COUNT(*) AS row_count
-FROM `{{ project_id }}.{{ dataset_id }}.{{ table_id }}`
+COUNT(*) AS row_count
+FROM `{{ project }}.{{ dataset }}.{{ table }}`
 WHERE
-  submission_date = DATE("{{ partition }}")
+submission_date = DATE("{{ partition }}")
 )
 
-SELECT TO_JSON_STRING(CTE) as additional_information, "{{ project_id }}" as project_id,
-"{{ dataset_id }}" as dataset_id,
-"{{ table_id }}" as table_id,
+SELECT TO_JSON_STRING(CTE) as additional_information, "{{ project }}" as project,
+"{{ dataset }}" as dataset,
+"{{ table }}" as table,
 "{{ dq_check }}" as dq_check, 
-"{{dataset_owner}}" as dataset_owner,
-"{{slack_alert}}" as slack_alert,
-CURRENT_DATE() as created_date
+"{{ dataset_owner }}" as dataset_owner,
+"{{ slack_alert }}" as slack_alert,
+CURRENT_DATETIME() as created_date
 FROM CTE 
 WHERE  {{ threshold }}
