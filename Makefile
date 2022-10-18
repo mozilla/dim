@@ -23,7 +23,7 @@ test-unit: build-test ## Builds test Docker image and executes Python tests
 	@docker run dim:latest-test python -m pytest tests/
 
 test-black: build-test
-	@docker run dim:latest-test python -m black --check dim/
+	@docker run dim:latest-test python -m black --line-length=79 --check dim/
 
 test-flake8: build-test
 	@docker run dim:latest-test python -m flake8 dim/
@@ -34,7 +34,7 @@ test-mypy: build-test
 test-all: build-test test test-black test-flake8 test-mypy
 
 format-black:
-	@python -m black dim/
+	@python -m black --line-length=79 dim/
 
 # For setting up local environment
 setup-venv:
