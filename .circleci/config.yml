@@ -12,24 +12,12 @@ jobs:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
-      # # - &restore_venv_cache
-      #   restore_cache:
-      #     keys:
-      #       # when lock files change, use increasingly general
-      #       # patterns to restore cache
-      #       - &python_cache_key
-      #         python-3.10-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
-      #       - python-3.10-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
-      #       - python-3.10-packages-v1-{{ .Branch }}-
-      #       - python-3.10-packages-v1-main-
-      - &build
-        run:
+      - run:
           name: Build Image
           command: |
             make build-app
-  test:
-    docker: &docker
-      - image: cimg/python:3.10.6
+  test-unit:
+    docker: *docker
     steps:
       - checkout
       - setup_remote_docker:
@@ -37,7 +25,56 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            make test
+            make test-unit
+  test-format:
+    docker: *docker
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Run check code formatting
+          command: |
+            make test-black
+  test-linter:
+    docker: *docker
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Run linter checks
+          command: |
+            make test-flake8
+
+  # test-typing:
+  #   docker: *docker
+  #   steps:
+  #     - checkout
+  #     - setup_remote_docker:
+  #         docker_layer_caching: true
+  #     - run:
+  #         name: Run type checks
+  #         command: |
+  #           make test-mypy
+
+  deploy:
+    docker: *docker
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - when:
+          condition: &deploy-condition
+            or:
+              - equal: [main, << pipeline.git.branch >>]
+              - << pipeline.git.tag >>
+          steps:
+            - gcp-gcr/gcr-auth
+            - gcp-gcr/build-image: &private-image
+                image: dim
+                tag: ${CIRCLE_TAG:-latest}
+            - gcp-gcr/push-image: *private-image
 
 workflows:
   version: 2
@@ -45,6 +82,23 @@ workflows:
     jobs: &build_jobs
       - build:
           context: data-eng-circleci-tests
-      - test:
+      - test-unit:
           requires:
             - build
+      - test-format:
+          requires:
+            - build
+      - test-linter:
+          requires:
+            - build
+      # - test-typing:
+      #     requires:
+      #       - build
+      - deploy:
+          context: data-eng-airflow-gcr
+          requires:
+            - build
+            - test-unit
+            - test-format
+            - test-linter
+            # - test-typing

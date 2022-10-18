@@ -1,11 +1,12 @@
 import os
-from datetime import date
+
+# from datetime import date
 
 import pandas as pd
 from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
-from tabulate import tabulate
 
+# from slack_sdk.errors import SlackApiError
+from tabulate import tabulate
 
 
 class Slack:
@@ -23,11 +24,16 @@ class Slack:
                 tablefmt="grid",
                 stralign="center",
             )
-            slack_handle_string = list(map((lambda x: "<@" + x + ">"), slack_handles))
+            slack_handle_string = list(
+                map((lambda x: "<@" + x + ">"), slack_handles)
+            )
             for channel in channels:
                 slack_client.chat_postMessage(
                     channel=channel,  # TO-DO replace with dataset owner id
-                    text=f":alert: {slack_handle_string} The following DQ check failed\n"
+                    text=(
+                        f":alert: {slack_handle_string} ",
+                        "The following DQ check failed\n",
+                    )
                     + df_tab,
                     as_user=True,
                 )
