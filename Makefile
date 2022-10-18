@@ -23,18 +23,26 @@ test-unit: build-test ## Builds test Docker image and executes Python tests
 	@docker run dim:latest-test python -m pytest tests/
 
 test-black: build-test
-	@docker run dim:latest-test python -m black --line-length=79 --check dim/
+	@docker run dim:latest-test python -m black --check dim/ tests/
 
 test-flake8: build-test
-	@docker run dim:latest-test python -m flake8 dim/
+	@docker run dim:latest-test python -m flake8 dim/ tests/
+
+test-isort: build-test
+	@docker run dim:latest-test python -m isort --check dim/ tests/
 
 test-mypy: build-test
-	@docker run dim:latest-test python -m mypy dim/
+	@docker run dim:latest-test python -m mypy dim/ tests/
 
-test-all: build-test test test-black test-flake8 test-mypy
+test-all: build-test test-unit test-flake8 test-isort test-black #test-mypy
 
 format-black:
-	@python -m black --line-length=79 dim/
+	@venv/bin/python -m black dim/ tests/
+
+format-isort:
+	@venv/bin/isort dim/ tests/
+
+format: format-isort format-black
 
 # For setting up local environment
 setup-venv:
@@ -64,10 +72,11 @@ pip-compile-dev:
 
 install-requirements: setup-venv upgrade-pip pip-compile
 	@venv/bin/python -m pip install -r requirements/requirements.txt
-install-requirements-dev: setup-venv upgrade-pip pip-compile pip-compile-dev
+install-requirements-dev: setup-venv upgrade-pip pip-compile-dev
 	@venv/bin/python -m pip install -r requirements/dev-requirements.txt
 
 update-local-env: install-requirements install-requirements-dev
+update-deps: pip-compile pip-compile-dev
 
 .PHONY: clean
 make clean:  # Removes local env

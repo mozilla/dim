@@ -1,17 +1,17 @@
 import logging
 import os
+from datetime import timedelta
 
 import click
 import yaml
 
-from datetime import timedelta
+import dim.error as error
 from dim.bigquery_client import BigQueryClient
 from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
 from dim.models.dq_checks.not_null import NotNull
 from dim.models.dq_checks.table_row_count import TableRowCount
 from dim.models.dq_checks.uniqueness import Uniqueness
 from dim.slack import Slack
-import dim.error as error
 
 CONFIG_ROOT_PATH = "dim_checks"
 TEST_CLASS_MAPPING = {
