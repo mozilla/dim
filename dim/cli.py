@@ -4,7 +4,8 @@ from datetime import timedelta
 
 import click
 import yaml
-from schema import Or, Optional, Schema, SchemaError 
+from schema import Optional, Or, Schema, SchemaError
+
 import dim.error as error
 from dim.bigquery_client import BigQueryClient
 from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
@@ -150,37 +151,43 @@ def run(project, dataset, table, date_partition_parameter):
                     )
                     logging.info(f"Users notified via {channel} ")
 
-expected_schema = Schema({
-   "dim_config":[
-      {
-         "owner":{
-            "email":[
-               str
-            ],
-            Optional("slack_handle"):[
-               str
-            ]
-         },
-         "tests":[
+
+expected_schema = Schema(
+    {
+        "dim_config": [
             {
-               "type":Or("table_row_count", "uniqueness", "custom_sql_metric", "not_null"),
-               "config":{
-                   Optional("columns"):list,
-                   Optional("sql"):str,
-                  "threshold":str,
-                  "slack_alert":str,
-                   Optional("channel"): list
-               }
+                "owner": {"email": [str], Optional("slack_handle"): [str]},
+                "tests": [
+                    {
+                        "type": Or(
+                            "table_row_count",
+                            "uniqueness",
+                            "custom_sql_metric",
+                            "not_null",
+                        ),
+                        "config": {
+                            Optional("columns"): list,
+                            Optional("sql"): str,
+                            "threshold": str,
+                            "slack_alert": str,
+                            Optional("channel"): list,
+                        },
+                    }
+                ],
             }
-         ]
-      }
-   ]
-}
+        ]
+    }
 )
+
 
 @cli.command()
 def validate_config(file):
-    file =  CONFIG_ROOT_PATH + "/data-monitoring-dev/dummy/active_users_aggregates_v1/dim_checks.yml"
+    # to-do build the file path
+    file = (
+        CONFIG_ROOT_PATH
+        + "/data-monitoring-dev/dummy/"
+        + "active_users_aggregates_v1/dim_checks.yml"
+    )
     config = yaml.safe_load(file)
     try:
         expected_schema.validate(config)
