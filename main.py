@@ -2,8 +2,10 @@
 
 from datetime import timedelta, datetime
 import os
+from traceback import print_exc
 
 import yaml
+from schema import Or, Optional, Schema, SchemaError
 
 from dim.bigquery_client import BigQueryClient
 from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
@@ -125,21 +127,57 @@ def backfill(project,
         logging.info(f"Backfill completed for the date {date}")
 
 
+
+expected_schema = Schema({
+    "dim_config":[
+        {
+         "owner":{
+            "email":list,
+            Optional("slack_handle"):list
+         },
+        "tests":[
+            {
+              "type": Or("table_row_count", "not_null", "custom_sql_metric", "uniqueness"),
+               "config":{
+                   Optional("columns"):list,
+                   Optional("sql"):str,
+                  "threshold":str,
+                  "slack_alert":str,
+                   Optional("channel"): list
+                    }
+            }
+                ]
+        }
+   ]
+}
+)
+
+def validate_config():
+    file =  CONFIG_ROOT_PATH + "/data-monitoring-dev/dummy/active_users_aggregates_v1/dim_checks.yml"
+    config = read_config(file)
+
+    try:
+        expected_schema.validate(config)
+        print("Configuration is valid.")
+    except SchemaError as se:
+        raise se
+
 if __name__ == "__main__":
-    project = "data-monitoring-dev"
-    dataset = "dummy"
-    table ="active_users_aggregates_v1"
-    date_partition_parameter = "2022-01-13"
-    date_partition_parameter = datetime.strptime(
-        date_partition_parameter, "%Y-%m-%d"
-    ).date()
-    start_date = "2021-01-10"
-    start_date = datetime.strptime(
-        start_date, "%Y-%m-%d"
-    ).date()
-    end_date = "2021-01-12"
-    end_date = datetime.strptime(
-        end_date, "%Y-%m-%d"
-    ).date()
-    # run(project, dataset, date_partition_parameter)
-    backfill(project, dataset, table, start_date, end_date)
+    # project = "data-monitoring-dev"
+    # dataset = "dummy"
+    # table ="active_users_aggregates_v1"
+    # date_partition_parameter = "2022-01-13"
+    # date_partition_parameter = datetime.strptime(
+    #     date_partition_parameter, "%Y-%m-%d"
+    # ).date()
+    # start_date = "2021-01-10"
+    # start_date = datetime.strptime(
+    #     start_date, "%Y-%m-%d"
+    # ).date()
+    # end_date = "2021-01-12"
+    # end_date = datetime.strptime(
+    #     end_date, "%Y-%m-%d"
+    # ).date()
+    # # run(project, dataset, date_partition_parameter)
+    # backfill(project, dataset, table, start_date, end_date)
+    validate_config()

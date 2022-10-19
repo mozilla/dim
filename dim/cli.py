@@ -4,7 +4,7 @@ from datetime import timedelta
 
 import click
 import yaml
-
+from schema import Or, Optional, Schema, SchemaError 
 import dim.error as error
 from dim.bigquery_client import BigQueryClient
 from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
@@ -150,11 +150,43 @@ def run(project, dataset, table, date_partition_parameter):
                     )
                     logging.info(f"Users notified via {channel} ")
 
+expected_schema = Schema({
+   "dim_config":[
+      {
+         "owner":{
+            "email":[
+               str
+            ],
+            Optional("slack_handle"):[
+               str
+            ]
+         },
+         "tests":[
+            {
+               "type":Or("table_row_count", "uniqueness", "custom_sql_metric", "not_null"),
+               "config":{
+                   Optional("columns"):list,
+                   Optional("sql"):str,
+                  "threshold":str,
+                  "slack_alert":str,
+                   Optional("channel"): list
+               }
+            }
+         ]
+      }
+   ]
+}
+)
 
 @cli.command()
-@click.argument("config_dir", required=True, type=click.Path(file_okay=False))
-def validate_config(config_dir):
-    logging.info(f"Validating config files in: {config_dir}")
+def validate_config(file):
+    file =  CONFIG_ROOT_PATH + "/data-monitoring-dev/dummy/active_users_aggregates_v1/dim_checks.yml"
+    config = yaml.safe_load(file)
+    try:
+        expected_schema.validate(config)
+        print("Configuration is valid.")
+    except SchemaError as se:
+        raise se
 
 
 @cli.command()
