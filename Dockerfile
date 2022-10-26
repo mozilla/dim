@@ -11,8 +11,6 @@ RUN apt-get update \
 WORKDIR /app
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
-COPY pyproject.toml .
-
 COPY requirements/requirements.txt /tmp/requirements.txt
 RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt \
     && rm /tmp/requirements.txt
@@ -31,6 +29,7 @@ COPY tests/ tests
 # final stage for running in prod
 FROM base AS app
 
+COPY pyproject.toml .
 COPY dim/ dim
 COPY dim_checks/ dim_checks
 

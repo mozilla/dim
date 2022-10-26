@@ -1,38 +1,39 @@
 .DEFAULT_GOAL := help
 
+IMAGE_REPO	   := gcr.io/data-monitoring-dev
 IMAGE_BASE     := dim
 IMAGE_VERSION  := latest-app
 IMAGE_NAME     := $(IMAGE_BASE):$(IMAGE_VERSION)
+IMAGE_TARGET   := app
+
 CONTAINER_NAME := $(IMAGE_BASE)
-IMAGE_REPO	   := gcr.io/data-monitoring-dev
 
 .PHONY: build
 build-app: ## Builds final app Docker image
-	@docker build -t dim:latest-app --target=app -f Dockerfile .
+	@docker build -t ${IMAGE_BASE}:${IMAGE_VERSION} --target=${IMAGE_TARGET} -f Dockerfile .
 
 build-test: ## Builds test Docker image containing all dev requirements
-	@docker build -t dim:latest-test --target=test -f Dockerfile .
+	@docker build -t ${IMAGE_BASE}:latest-test --target=test -f Dockerfile .
 
-image:
-	docker build -t ${IMAGE_NAME} .
+image: build-app
 
 build: update pytest image
 
 .PHONY: test
 test-unit: build-test ## Builds test Docker image and executes Python tests
-	@docker run dim:latest-test python -m pytest tests/
+	@docker run ${IMAGE_BASE}:latest-test python -m pytest tests/
 
 test-black: build-test
-	@docker run dim:latest-test python -m black --check dim/ tests/
+	@docker run ${IMAGE_BASE}:latest-test python -m black --check dim/ tests/
 
 test-flake8: build-test
-	@docker run dim:latest-test python -m flake8 dim/ tests/
+	@docker run ${IMAGE_BASE}:latest-test python -m flake8 dim/ tests/
 
 test-isort: build-test
-	@docker run dim:latest-test python -m isort --check dim/ tests/
+	@docker run ${IMAGE_BASE}:latest-test python -m isort --check dim/ tests/
 
 test-mypy: build-test
-	@docker run dim:latest-test python -m mypy dim/ tests/
+	@docker run ${IMAGE_BASE}:latest-test python -m mypy dim/ tests/
 
 test-all: build-test test-unit test-flake8 test-isort test-black #test-mypy
 

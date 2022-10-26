@@ -1,124 +1,47 @@
 import logging
-import os
 from datetime import timedelta
 
 import click
-import yaml
 
-import dim.error as error
-from dim.bigquery_client import BigQueryClient
 from dim.models.dim_config import DimConfig
 from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
 from dim.models.dq_checks.not_null import NotNull
 from dim.models.dq_checks.table_row_count import TableRowCount
 from dim.models.dq_checks.uniqueness import Uniqueness
-from dim.slack import Slack
+from dim.slack import Slack, send_slack_alert
+from dim.utils import get_all_paths_yaml, read_config
+from dim.error import DateRangeException
 
 CONFIG_ROOT_PATH = "dim_checks"
+
 TEST_CLASS_MAPPING = {
     "not_null": NotNull,
     "uniqueness": Uniqueness,
     "custom_sql_metric": CustomSqlMetrics,
     "table_row_count": TableRowCount,
 }
+SOURCE_PROJECT = "data-monitoring-dev"
 DESTINATION_PROJECT = "data-monitoring-dev"
 DESTINATION_DATASET = "monitoring_derived"
+INPUT_DATE_FORMAT = "%Y-%m-%d"
+
+CONFIG_EXTENSION = ".yaml"
+
 
 logging.basicConfig(level=logging.INFO)
 
 
-def get_failed_dq_checks(
-    project, dataset, table, test_type, date_partition_parameter
-):
-    # TO-DO if tables are different
-    # for each dataset then loop through all of them
-    sql = f"""
-        SELECT
-            additional_information,
-            project,
-            dataset,
-            table,
-            dq_check,
-            dataset_owner,
-            slack_alert,
-            created_date,
-        FROM `monitoring_derived.test_results`
-        WHERE DATE(created_date) = CURRENT_DATE()
-        AND project = '{project}'
-        AND dataset = '{dataset}'
-        AND dq_check = '{test_type}'
-        AND table = '{table}'
-        """
-    bigquery = BigQueryClient(
-        project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
-    )
-    job = bigquery.fetch_results(sql)
-    df = job.result().to_dataframe()
-    print(df)
-    return df
+def run_check(project, dataset, table, date_partition_parameter):
+    logging.info("Running data checks on %s:%s.%s for date: %s" % (project, dataset, table, date_partition_parameter))
 
-
-def get_all_paths_yaml(extension, config_root_path: str):
-    result = []
-    logging.info(config_root_path)
-    for root, dirs, files in os.walk(config_root_path):
-        print(f"{files}")
-        for file in files:
-            print(f"{file}")
-            if extension in file:
-                result.append(os.path.join(root, file))
-    if not result:
-        logging.info("No config files found !")
-    else:
-        return result
-
-
-def read_config(config_path: str):
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-    return config
-
-
-def send_slack_alert(
-    channel,
-    project,
-    dataset,
-    table,
-    test_type,
-    slack_handles,
-    date_partition_parameter,
-):
-    slack = Slack()
-    print(test_type)
-    df = get_failed_dq_checks(
-        project, dataset, table, test_type, date_partition_parameter
-    )
-    slack.format_and_publish_slack_message(
-        df, channel, slack_handles=slack_handles
-    )
-
-
-@click.group()
-def cli():
-    pass
-
-
-@cli.command()
-@click.option("--project", default="data-monitoring-dev")
-@click.option("--dataset")
-@click.option("--table")
-@click.option("--date_partition_parameter")
-def run(project, dataset, table, date_partition_parameter):
-    extension = ".yml"
+    # TODO: majority of this logic should be moved to a separate module
     config_paths = (
         CONFIG_ROOT_PATH + "/" + project + "/" + dataset + "/" + table
     )
-    for config_path in get_all_paths_yaml(extension, config_paths):
+    for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
         config = read_config(config_path=config_path)
         project, dataset, table = config_path.split("/")[1:-1]
-        logging.info(
-            f"Starting the data checks - {project}, {dataset}, {table}"
-        )
+
         for config in config["dim_config"]:
             dim_config = DimConfig(**config)
 
@@ -158,32 +81,56 @@ def run(project, dataset, table, date_partition_parameter):
                     #             date_partition_parameter,
                     #         )
                     logging.info(f"Slack handle {slack_handles} ")
-                    logging.info(f"Users notified via {channel} ")
+
+    logging.info("Finished running data checks on %s:%s.%s for date: %s" % (project, dataset, table, date_partition_parameter))
+
+
+def validate_date_range(start_date, end_date):
+    if start_date > end_date:
+        raise DateRangeException("Start date appears to be more recent than end date.")
+
+    return start_date, end_date
+
+
+@click.group()
+def cli():
+    pass
+
+@cli.command()
+@click.option("--project", required=False, type=str, default=SOURCE_PROJECT)
+@click.option("--dataset", required=True, type=str)
+@click.option("--table", required=True, type=str)  # required for now until we add support for grabbing all configs in a dataset
+@click.option("--date_partition_parameter", required=True, type=click.DateTime(formats=[INPUT_DATE_FORMAT]))  # rename date_partition_parameter to something shorter, required until we add support for full tables
+def run(project: str, dataset: str, table: str, date_partition_parameter: str):
+    run_check(project, dataset, table, date_partition_parameter)
 
 
 @cli.command()
 @click.argument("config_dir", required=True, type=click.Path(file_okay=False))
 def validate_config(config_dir):
+    # TODO: needs implemented
     logging.info(f"Validating config files in: {config_dir}")
 
 
 @cli.command()
-@click.option("--project", default="data-monitoring-dev")
-@click.option("--dataset")
-@click.option("--table")
-@click.option("--start_date")
-@click.option("--end_date")
+@click.option("--project", required=False, type=str, default=SOURCE_PROJECT)
+@click.option("--dataset", required=True, type=str)
+@click.option("--table", required=True, type=str)  # required for now until we add support for grabbing all configs in a dataset
+@click.option("--start_date", required=True, type=click.DateTime(formats=[INPUT_DATE_FORMAT]))
+@click.option("--end_date", required=True, type=click.DateTime(formats=[INPUT_DATE_FORMAT]))
 def backfill(project, dataset, table, start_date, end_date):
+    """
+    Cmd to trigger tests execution for the specified table
+    for the specified date range.
+    """
 
-    if start_date > end_date:
-        raise error.NoStartDateException()
+    validate_date_range(start_date, end_date)
 
-    for date in [
-        start_date + timedelta(days=d)
-        for d in range(0, (end_date - start_date).days + 1)
-    ]:
-        logging.info(f"Backfill started for the date {date}")
+    logging.info("Running dim backfill checks on %s:%s.%s for date range: %s - %s" % (project, dataset, table, start_date, end_date))
 
-        run(project, dataset, table, date)
+    date = start_date
+    while date <= end_date:
+        run_check(project, dataset, table, date)
+        date += timedelta(days=1)
 
-        logging.info(f"Backfill completed for the date {date}")
+    logging.info("Dim backfill completed for %s:%s.%s for date range: %s - %s" % (project, dataset, table, start_date, end_date))
