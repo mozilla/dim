@@ -1,27 +1,27 @@
 dim_config:
-  - owner: {"email":["akommasani@mozilla.com"], slack_handle:["Alekhya","kik"]}
-    # tier: tier_1
-    tests:
+  - owner: {"email": ["akommasani@mozilla.com"], slack_handle: ["Alekhya","kik"]}
+    tier: tier_1
+    dim_tests:
       - type: table_row_count
-        config:
+        options:
           threshold: row_count <= 10
           slack_alert: disabled
       - type: not_null
-        config:
+        options:
           columns:
-            - segment 
+            - segment
           threshold: row_count >= 10
           slack_alert: enabled
           channel: ["U029TU25FTP"]
       - type: uniqueness
-        config:
+        options:
             columns:
               - segment
               - app_version
             threshold: row_count > 10
             slack_alert: disabled
       - type: custom_sql_metric
-        config:
+        options:
             sql: |
                 SELECT COUNT(*) as total_count
                 FROM `data-monitoring-dev.dummy.active_users_aggregates_v1`
