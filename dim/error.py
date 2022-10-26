@@ -21,7 +21,28 @@ class StartEndException(DimException):
     """Exception thrown when no start date has been defined."""
 
     def __init__(
-        self, slug, message="Start date should be less than End date."
+        self,
+        slug,
+        message="Start and end date parameters should be specified.",
     ):
         """Initialize exception."""
         super().__init__(f"{slug} -> {message}")
+
+
+class DateRangeException(DimException):
+    """"""
+
+    def __init__(
+        self,
+        slug,
+        message="Start date appears to be more recent than end date.",
+    ):
+        """Initialize exception."""
+        super().__init__(f"{slug} -> {message}")
+
+
+class DimConfigError(DimException):
+    """Error/Exception indicating that the dim config is invalid."""
+
+    def __init__(self, message):
+        super().__init__(message)
