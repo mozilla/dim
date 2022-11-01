@@ -1,7 +1,9 @@
 import logging
 import os
 from pathlib import Path
+
 import yaml
+
 from dim.bigquery_client import BigQueryClient
 
 
@@ -20,8 +22,15 @@ def sql_to_file(target_file: Path, sql: str) -> bool:
         _file.write(sql)
     return True
 
+
 def get_failed_dq_checks(
-    project, dataset, table, test_type, date_partition_parameter, target_gcp_project, target_dataset,
+    project,
+    dataset,
+    table,
+    test_type,
+    date_partition_parameter,
+    target_gcp_project,
+    target_dataset,
 ):
     # TO-DO if tables are different
     # for each dataset then loop through all of them
