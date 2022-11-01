@@ -1,0 +1,10 @@
+dim_config:
+  owner:
+    - email: dummy@mozmail.com
+      slack_handle: dummy
+  tier: tier_3
+  dim_tests:
+    - type: table_row_count
+      options:
+        threshold: row_count <= 10
+        slack_alert: disabled

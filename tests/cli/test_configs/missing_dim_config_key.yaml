@@ -1,0 +1,6 @@
+owner: {"email":["dummy@mozilla.com"]}
+dim_tests:
+  - type: table_row_count
+    options:
+      threshold: row_count <= 10
+      slack_alert: disabled
