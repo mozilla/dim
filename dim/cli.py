@@ -4,15 +4,12 @@ from datetime import timedelta
 import click
 
 from dim.app import run_check
+from dim.const import INPUT_DATE_FORMAT, LOGGING_LEVEL, SOURCE_PROJECT
 from dim.error import DateRangeException, DimConfigError
 from dim.models.dim_config import DimConfig
 from dim.utils import read_config
 
-SOURCE_PROJECT = "data-monitoring-dev"
-INPUT_DATE_FORMAT = "%Y-%m-%d"
-
-
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=LOGGING_LEVEL)
 
 
 def validate_date_range(start_date, end_date):
@@ -35,7 +32,7 @@ def validate_config(config_path):
     except (KeyError, TypeError) as _err:
         raise DimConfigError(_err)
 
-    logging.info("Config appears to be validl: %s" % config_path)
+    logging.info("Config appears to be valid: %s" % config_path)
 
 
 @click.group()
@@ -77,7 +74,9 @@ def run(project: str, dataset: str, table: str, date_partition_parameter: str):
     required=True,
     type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
 )
-def backfill(project, dataset, table, start_date, end_date):
+def backfill(
+    project: str, dataset: str, table: str, start_date: str, end_date: str
+):
     """
     Cmd to trigger tests execution for the specified table
     for the specified date range.
@@ -103,7 +102,7 @@ def backfill(project, dataset, table, start_date, end_date):
 
 @cli.command()
 @click.argument("config_path")  # , type=click.Path(file_okay=False))
-def validate(config_path):
+def validate(config_path: str):
     """
     Cmd used to valide a dim yaml config. Ensures the yaml file
     can be loaded correctly and that it fullfils all requirements.

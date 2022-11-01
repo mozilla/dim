@@ -12,7 +12,7 @@ WHERE  {{ threshold }}
 SELECT *, "{{ project }}" as project,
 "{{ dataset }}" as dataset,
 "{{ table }}" as table,
-"{{ dq_check }}" as dq_check, 
+"{{ dq_check }}" as dq_check,
 "{{ dataset_owner }}" as dataset_owner,
 "{{ slack_alert }}" as slack_alert,
 CURRENT_DATETIME() as created_date

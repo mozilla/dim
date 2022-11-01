@@ -1,7 +1,6 @@
 from dim.models.dq_checks.base import Base
 
 
-# TODO: validate config, correct keys + types
 class Uniqueness(Base):
     TEMPLATE_FILE = "uniqueness" + Base.TEMPLATE_FILE_EXTENSION
 
@@ -10,7 +9,6 @@ class Uniqueness(Base):
         project,
         dataset,
         table,
-        dataset_owner,
         date_partition_parameter,
         config,
     ):
@@ -19,7 +17,6 @@ class Uniqueness(Base):
         self.config["dataset"] = dataset
         self.config["table"] = table
         self.config["dq_check"] = "uniqueness"
-        self.config["dataset_owner"] = dataset_owner
         self.config["partition"] = date_partition_parameter
         self.name = dataset + "__" + "uniqueness"
 

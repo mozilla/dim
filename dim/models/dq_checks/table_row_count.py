@@ -1,7 +1,6 @@
 from dim.models.dq_checks.base import Base
 
 
-# TODO: validate config, correct keys + types
 class TableRowCount(Base):
     TEMPLATE_FILE = "table_row_count" + Base.TEMPLATE_FILE_EXTENSION
 
@@ -10,7 +9,6 @@ class TableRowCount(Base):
         project,
         dataset,
         table,
-        dataset_owner,
         date_partition_parameter,
         config,
     ):
@@ -19,7 +17,6 @@ class TableRowCount(Base):
         self.config["dataset"] = dataset
         self.config["table"] = table
         self.config["dq_check"] = "table_row_count"
-        self.config["dataset_owner"] = dataset_owner
         self.config["partition"] = date_partition_parameter
         self.name = dataset + "__" + "table_row_count"
 
