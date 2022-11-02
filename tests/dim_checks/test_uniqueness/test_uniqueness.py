@@ -1,31 +1,34 @@
 from textwrap import dedent
 
+from dim.models.dim_config import DimConfig
 from dim.models.dq_checks.uniqueness import Uniqueness
 
 
 def test_uniqueness_pass():
     """ """
 
-    config = {
-        "dim_config": {
+    config = DimConfig.from_dict(
+        {
             "owner": ["akommasani@mozilla.com"],
-            "tests": [
+            "tier": "tier_1",
+            "dim_tests": [
                 {
                     "type": "uniqueness",
-                    "config": {
+                    "options": {
                         "columns": ["segment", "app_version"],
                         "threshold": "row_count >= 1",
                     },
                 }
             ],
         }
-    }
+    )
+
     dq_check = Uniqueness(
         project_id="test_project",
         dataset="test_dataset",
         table="test_table",
         dataset_owner="akommasani@mozilla.com",
-        config=config["dim_config"]["tests"][0]["config"],
+        config=config.dim_tests[0].options,
         date="2022-01-13",
     )
 

@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any, Dict, List
 
+from cattrs import unstructure
 from jinja2 import Environment, FileSystemLoader
 
 from dim.bigquery_client import BigQueryClient
@@ -76,7 +77,7 @@ class Base:
                 "table": self.table,
                 "dq_check": dq_check,
                 "dataset_owner": self.dataset_owner,
-                **self.config,
+                **unstructure(self.config),
             },
         )
 

@@ -19,32 +19,32 @@ def run_check(project: str, dataset: str, table: str, date: datetime):
     for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
         project, dataset, table = config_path.split("/")[1:-1]
 
-        dim_config = DimConfig(
-            **read_config(config_path=config_path)["dim_config"]
+        dim_config = DimConfig.from_dict(
+            read_config(config_path=config_path)["dim_config"]
         )
+
         # TODO: in future the rest of the code should
         # handle multiple owners and alerting people
         dataset_owner = dim_config.owner
 
         for dim_test in dim_config.dim_tests:
-            test_type = dim_test["type"]
+            test_type = dim_test.type
 
             dq_check = TEST_CLASS_MAPPING[test_type](
                 project_id=project,
                 dataset=dataset,
                 table=table,
                 dataset_owner=dataset_owner,
-                config=dim_test["options"],
+                config=dim_test.options,
                 date=date,
             )
 
             _, test_sql = dq_check.generate_test_sql()
             dq_check.execute_test_sql(sql=test_sql)
 
-            if dim_test["options"]["enable_slack_alert"]:
-                channel = dim_test["options"]["channel"]
+            if dim_test.options.enable_slack_alert:
                 send_slack_alert(
-                    channel,
+                    dim_test.options.channel,
                     project,
                     dataset,
                     table,

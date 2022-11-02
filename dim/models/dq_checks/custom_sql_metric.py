@@ -15,7 +15,7 @@ class CustomSqlMetric(Base):
     ):
         super().__init__(project_id, dataset, table, dataset_owner)
         self.config = config
-        self.config["partition"] = date
+        self.config.partition = date
 
     def generate_test_sql(self):
         return super().generate_test_sql(dq_check=self.DQ_CHECK_NAME)
