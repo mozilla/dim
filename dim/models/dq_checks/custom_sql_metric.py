@@ -2,26 +2,23 @@ from dim.models.dq_checks.base import Base
 
 
 class CustomSqlMetric(Base):
-    TEMPLATE_FILE = "custom_sql_metric" + Base.TEMPLATE_FILE_EXTENSION
+    DQ_CHECK_NAME = "custom_sql_metric"
 
     def __init__(
         self,
-        project,
+        project_id,
         dataset,
         table,
-        date_partition_parameter,
+        dataset_owner,
+        date,
         config,
     ):
-        super().__init__(config)
-        self.config["partition"] = date_partition_parameter
-        self.config["project"] = project
-        self.config["dataset"] = dataset
-        self.config["table"] = table
-        self.config["dq_check"] = "custom_sql_metric"
-        self.name = dataset + "__" + "custom_sql_metric"
+        super().__init__(project_id, dataset, table, dataset_owner)
+        self.config = config
+        self.config["partition"] = date
 
     def generate_test_sql(self):
-        return super().generate_test_sql(dq_check="custom_sql_metric")
+        return super().generate_test_sql(dq_check=self.DQ_CHECK_NAME)
 
     def execute_test_sql(self, sql):
         return super().execute_test_sql(sql=sql)

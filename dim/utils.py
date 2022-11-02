@@ -31,7 +31,7 @@ def get_failed_dq_checks(
     dataset: str,
     table: str,
     test_type: str,
-    date_partition_parameter: str,
+    date: str,
     target_gcp_project: str,
     target_dataset: str,
 ) -> DataFrame:

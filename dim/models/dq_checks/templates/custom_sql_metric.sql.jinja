@@ -4,16 +4,16 @@ WITH CTE AS (
 ),
 
 CTE2 AS (
-SELECT TO_JSON_STRING(STRUCT(TO_JSON_STRING(CTE) AS additional_information, '''{{ sql }}''' AS sql))  as additional_information
+SELECT TO_JSON_STRING(STRUCT(TO_JSON_STRING(CTE) AS additional_information, '''{{ sql }}''' AS sql))  AS additional_information
 FROM CTE
 WHERE  {{ threshold }}
 )
 
-SELECT *, "{{ project }}" as project,
-"{{ dataset }}" as dataset,
-"{{ table }}" as table,
-"{{ dq_check }}" as dq_check,
-"{{ dataset_owner }}" as dataset_owner,
-"{{ slack_alert }}" as slack_alert,
-CURRENT_DATETIME() as created_date
+SELECT *, "{{ project_id }}" AS project_id,
+"{{ dataset }}" AS dataset,
+"{{ table }}" AS table,
+"{{ dq_check }}" AS dq_check,
+"{{ dataset_owner }}" AS dataset_owner,
+"{{ slack_alert }}" AS slack_alert,
+CURRENT_DATETIME() AS created_date
 FROM CTE2

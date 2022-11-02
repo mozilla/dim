@@ -46,14 +46,14 @@ def send_slack_alert(
     table: str,
     test_type: str,
     slack_handles: List[str],
-    date_partition_parameter: str,
+    date: str,
 ):
     df = get_failed_dq_checks(
         project,
         dataset,
         table,
         test_type,
-        date_partition_parameter,
+        date,
         DESTINATION_PROJECT,
         DESTINATION_DATASET,
     )

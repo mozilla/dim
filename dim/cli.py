@@ -41,24 +41,24 @@ def cli():
 
 
 @cli.command()
-@click.option("--project", required=False, type=str, default=SOURCE_PROJECT)
+@click.option("--project_id", required=False, type=str, default=SOURCE_PROJECT)
 @click.option("--dataset", required=True, type=str)
 @click.option(
     "--table", required=True, type=str
 )  # required for now until we add
 # support for grabbing all configs in a dataset
 @click.option(
-    "--date_partition_parameter",
+    "--date",
     required=True,
     type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
-)  # rename date_partition_parameter to something shorter,
+)  # rename date to something shorter,
 # required until we add support for full tables
-def run(project: str, dataset: str, table: str, date_partition_parameter: str):
-    run_check(project, dataset, table, date_partition_parameter)
+def run(project_id: str, dataset: str, table: str, date: str):
+    run_check(project_id, dataset, table, date)
 
 
 @cli.command()
-@click.option("--project", required=False, type=str, default=SOURCE_PROJECT)
+@click.option("--project_id", required=False, type=str, default=SOURCE_PROJECT)
 @click.option("--dataset", required=True, type=str)
 @click.option(
     "--table", required=True, type=str
@@ -75,7 +75,7 @@ def run(project: str, dataset: str, table: str, date_partition_parameter: str):
     type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
 )
 def backfill(
-    project: str, dataset: str, table: str, start_date: str, end_date: str
+    project_id: str, dataset: str, table: str, start_date: str, end_date: str
 ):
     """
     Cmd to trigger tests execution for the specified table
@@ -86,17 +86,16 @@ def backfill(
 
     logging.info(
         "Running dim backfill checks on %s:%s.%s for date range: %s - %s"
-        % (project, dataset, table, start_date, end_date)
+        % (project_id, dataset, table, start_date, end_date)
     )
-
     date = start_date
     while date <= end_date:
-        run_check(project, dataset, table, date)
+        run_check(project_id, dataset, table, date)
         date += timedelta(days=1)
 
     logging.info(
         "Dim backfill completed for %s:%s.%s for date range: %s - %s"
-        % (project, dataset, table, start_date, end_date)
+        % (project_id, dataset, table, start_date, end_date)
     )
 
 

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -16,13 +16,22 @@ DESTINATION_PROJECT = "data-monitoring-dev"
 DESTINATION_DATASET = "monitoring_derived"
 DESTINATION_TABLE = "test_results"
 
+TEMPLATES_LOC = "dim/models/dq_checks/templates"
+TEMPLATE_FILE_EXTENSION = ".sql.jinja"
+
 
 class Base:
-    TEMPLATES_LOC = "dim/models/dq_checks/templates"
-    TEMPLATE_FILE_EXTENSION = ".sql.jinja"
-
-    def __init__(self, config: dict):
-        self.config = config
+    def __init__(
+        self,
+        project_id: str,
+        dataset: str,
+        table: str,
+        dataset_owner: List[str],
+    ):
+        self.project_id = project_id
+        self.dataset = dataset
+        self.table = table
+        self.dataset_owner = dataset_owner
 
     @property
     def bigquery(self):
@@ -35,11 +44,9 @@ class Base:
     def render_sql(self, dq_check: str, render_kwargs: Dict[str, Any]):
         """Render and return the SQL from a template."""
 
-        templateLoader = FileSystemLoader(self.TEMPLATES_LOC)
+        templateLoader = FileSystemLoader(TEMPLATES_LOC)
         templateEnv = Environment(loader=templateLoader)
-        template = templateEnv.get_template(
-            dq_check + self.TEMPLATE_FILE_EXTENSION
-        )
+        template = templateEnv.get_template(dq_check + TEMPLATE_FILE_EXTENSION)
 
         sql = template.render(**render_kwargs)
 
@@ -49,11 +56,11 @@ class Base:
         generated_sql_folder = Path(
             GENERATED_SQL_FOLDER
             + "/"
-            + self.config["project"]
+            + self.project_id
             + "/"
-            + self.config["dataset"]
+            + self.dataset
             + "/"
-            + self.config["table"]
+            + self.table
         )
 
         check_directory_exists(generated_sql_folder) or create_directory(
@@ -61,7 +68,17 @@ class Base:
         )
 
         target_file = generated_sql_folder.joinpath(f"{dq_check}.sql")
-        generated_sql = self.render_sql(dq_check, self.config)
+        generated_sql = self.render_sql(
+            dq_check,
+            {
+                "project_id": self.project_id,
+                "dataset": self.dataset,
+                "table": self.table,
+                "dq_check": dq_check,
+                "dataset_owner": self.dataset_owner,
+                **self.config,
+            },
+        )
 
         sql_to_file(target_file=target_file, sql=generated_sql)
 

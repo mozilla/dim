@@ -46,7 +46,7 @@ def test_backfill(
     expected_exit_code,
     expected_exception,
 ):
-    cmd_args = "--project={} --dataset={} --table={}".format(
+    cmd_args = "--project_id={} --dataset={} --table={}".format(
         *backfill_settings
     )
     cmd_args += f" --start_date={start}" if start else ""
@@ -100,8 +100,8 @@ def test_run(
     expected_exit_code,
     expected_exception,
 ):
-    cmd_args = "--project={} --dataset={} --table={}".format(*run_settings)
-    cmd_args += f" --date_partition_parameter={date}" if date else ""
+    cmd_args = "--project_id={} --dataset={} --table={}".format(*run_settings)
+    cmd_args += f" --date={date}" if date else ""
 
     result = runner.invoke(run, cmd_args.split(" "))
 

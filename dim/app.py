@@ -7,12 +7,10 @@ from dim.slack import send_slack_alert
 from dim.utils import get_all_paths_yaml, read_config
 
 
-def run_check(
-    project: str, dataset: str, table: str, date_partition_parameter: datetime
-):
+def run_check(project: str, dataset: str, table: str, date: datetime):
     logging.info(
         "Running data checks on %s:%s.%s for date: %s"
-        % (project, dataset, table, date_partition_parameter)
+        % (project, dataset, table, date)
     )
 
     config_paths = (
@@ -32,11 +30,12 @@ def run_check(
             test_type = dim_test["type"]
 
             dq_check = TEST_CLASS_MAPPING[test_type](
-                project=project,
+                project_id=project,
                 dataset=dataset,
                 table=table,
+                dataset_owner=dataset_owner,
                 config=dim_test["options"],
-                date_partition_parameter=date_partition_parameter,
+                date=date,
             )
 
             _, test_sql = dq_check.generate_test_sql()
@@ -51,10 +50,10 @@ def run_check(
                     table,
                     test_type,
                     dataset_owner[0]["slack_handle"],
-                    date_partition_parameter,
+                    date,
                 )
 
     logging.info(
         "Finished running data checks on %s:%s.%s for date: %s"
-        % (project, dataset, table, date_partition_parameter)
+        % (project, dataset, table, date)
     )

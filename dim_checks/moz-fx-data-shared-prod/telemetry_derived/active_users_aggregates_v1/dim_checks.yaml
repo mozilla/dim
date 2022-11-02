@@ -26,7 +26,7 @@ dim_config:
     - type: custom_sql_metric
       options:
           sql: |
-              SELECT COUNT(*) as total_count
+              SELECT COUNT(*) AS total_count
               FROM `data-monitoring-dev.dummy.active_users_aggregates_v1`
               WHERE country = 'AR' AND DATE(submission_date) = '2020-01-13'
           threshold: total_count > 3000
