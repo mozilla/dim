@@ -5,7 +5,6 @@ import pandas as pd
 from slack_sdk import WebClient
 from tabulate import tabulate
 
-from dim.const import DESTINATION_DATASET, DESTINATION_PROJECT
 from dim.utils import get_failed_dq_checks
 
 
@@ -54,8 +53,6 @@ def send_slack_alert(
         table,
         test_type,
         date,
-        DESTINATION_PROJECT,
-        DESTINATION_DATASET,
     )
 
     format_and_publish_slack_message(df, channel, slack_handles=slack_handles)
