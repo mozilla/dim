@@ -1,3 +1,5 @@
+# TODO: tweak this SQL to check that column only contains expected values
+
 WITH CTE AS (
     SELECT
         COUNT(*) AS row_count,{% for column in columns %}

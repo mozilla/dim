@@ -2,7 +2,7 @@ WITH CTE AS (
     SELECT
         COUNT(*) AS row_count,{% for column in columns %}
         {{ column }},{% endfor %}
-    FROM `{{ project }}.{{ dataset }}.{{ table }}`
+    FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
     WHERE
         submission_date = DATE("{{ partition }}"){% for column in columns %}
         AND {{ column }} IS NULL{% endfor %}
@@ -11,13 +11,13 @@ WITH CTE AS (
 )
 
 SELECT
-    TO_JSON_STRING(CTE) as additional_information,
-    "{{ project }}" as project,
-    "{{ dataset }}" as dataset,
-    "{{ table }}" as table,
-    "{{ dq_check }}" as dq_check,
-    "{{ dataset_owner }}" as dataset_owner,
-    "{{ slack_alert }}" as slack_alert,
-    CURRENT_DATETIME() as created_date
+    TO_JSON_STRING(CTE) AS additional_information,
+    "{{ project_id }}" AS project_id,
+    "{{ dataset }}" AS dataset,
+    "{{ table }}" AS table,
+    "{{ dq_check }}" AS dq_check,
+    "{{ dataset_owner }}" AS dataset_owner,
+    "{{ slack_alert }}" AS slack_alert,
+    CURRENT_DATETIME() AS created_date
 FROM CTE
 WHERE {{ threshold }}

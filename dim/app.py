@@ -1,82 +1,59 @@
 import logging
+from datetime import datetime
 
+from dim.const import CONFIG_EXTENSION, CONFIG_ROOT_PATH, TEST_CLASS_MAPPING
 from dim.models.dim_config import DimConfig
-from dim.models.dq_checks.custom_sql_metrics import CustomSqlMetrics
-from dim.models.dq_checks.not_null import NotNull
-from dim.models.dq_checks.table_row_count import TableRowCount
-from dim.models.dq_checks.uniqueness import Uniqueness
+from dim.slack import send_slack_alert
 from dim.utils import get_all_paths_yaml, read_config
 
-CONFIG_ROOT_PATH = "dim_checks"
 
-TEST_CLASS_MAPPING = {
-    "not_null": NotNull,
-    "uniqueness": Uniqueness,
-    "custom_sql_metric": CustomSqlMetrics,
-    "table_row_count": TableRowCount,
-}
-SOURCE_PROJECT = "data-monitoring-dev"
-DESTINATION_PROJECT = "data-monitoring-dev"
-DESTINATION_DATASET = "monitoring_derived"
-INPUT_DATE_FORMAT = "%Y-%m-%d"
-
-CONFIG_EXTENSION = ".yaml"
-
-
-def run_check(project, dataset, table, date_partition_parameter):
+def run_check(project: str, dataset: str, table: str, date: datetime):
     logging.info(
         "Running data checks on %s:%s.%s for date: %s"
-        % (project, dataset, table, date_partition_parameter)
+        % (project, dataset, table, date)
     )
 
     config_paths = (
         CONFIG_ROOT_PATH + "/" + project + "/" + dataset + "/" + table
     )
     for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
-        config = read_config(config_path=config_path)
         project, dataset, table = config_path.split("/")[1:-1]
 
-        for config in config["dim_config"]:
-            dim_config = DimConfig(**config)
+        dim_config = DimConfig(
+            **read_config(config_path=config_path)["dim_config"]
+        )
+        # TODO: in future the rest of the code should
+        # handle multiple owners and alerting people
+        dataset_owner = dim_config.owner
 
-            dataset_owner = dim_config.owner
+        for dim_test in dim_config.dim_tests:
+            test_type = dim_test["type"]
 
-            for dim_test in config["dim_tests"]:
-                test_type = dim_test["type"]
-                logging.info(dim_test["options"])
+            dq_check = TEST_CLASS_MAPPING[test_type](
+                project_id=project,
+                dataset=dataset,
+                table=table,
+                dataset_owner=dataset_owner,
+                config=dim_test["options"],
+                date=date,
+            )
 
-                dq_check = TEST_CLASS_MAPPING[test_type](
-                    project=project,
-                    dataset=dataset,
-                    table=table,
-                    config=dim_test["options"],
-                    dataset_owner=dataset_owner["email"],
-                    date_partition_parameter=date_partition_parameter,
+            _, test_sql = dq_check.generate_test_sql()
+            dq_check.execute_test_sql(sql=test_sql)
+
+            if dim_test["options"]["enable_slack_alert"]:
+                channel = dim_test["options"]["channel"]
+                send_slack_alert(
+                    channel,
+                    project,
+                    dataset,
+                    table,
+                    test_type,
+                    dataset_owner[0]["slack_handle"],
+                    date,
                 )
-
-                _, test_sql = dq_check.generate_test_sql()
-
-                # dq_check.execute_test_sql(sql=test_sql)
-                logging.info(f"Running DQ check - {test_type}")
-
-                is_slack_enabled = dim_test["options"]["slack_alert"].lower()
-                logging.info(f"Slack notification has been {is_slack_enabled}")
-
-                if is_slack_enabled == "enabled":
-                    slack_handles = dataset_owner["slack_handle"]
-                    # channel = dim_test["options"]["channel"]
-                    #         send_slack_alert(
-                    #             channel,q
-                    #             project,
-                    #             dataset,
-                    #             table,
-                    #             test_type,
-                    #             slack_handles,
-                    #             date_partition_parameter,
-                    #         )
-                    logging.info(f"Slack handle {slack_handles} ")
 
     logging.info(
         "Finished running data checks on %s:%s.%s for date: %s"
-        % (project, dataset, table, date_partition_parameter)
+        % (project, dataset, table, date)
     )

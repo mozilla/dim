@@ -1,16 +1,16 @@
 from dim.models.dq_checks.base import Base
 
 
-class Uniqueness(Base):
-    DQ_CHECK_NAME = "uniqueness"
+class CustomSqlMetric(Base):
+    DQ_CHECK_NAME = "custom_sql_metric"
 
     def __init__(
         self,
         project_id,
         dataset,
         table,
-        date,
         dataset_owner,
+        date,
         config,
     ):
         super().__init__(project_id, dataset, table, dataset_owner)

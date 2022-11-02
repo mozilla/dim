@@ -1,8 +1,11 @@
 import logging
 import os
 from pathlib import Path
+from textwrap import dedent
+from typing import Any, Dict, List
 
 import yaml
+from pandas import DataFrame
 
 from dim.bigquery_client import BigQueryClient
 
@@ -24,17 +27,18 @@ def sql_to_file(target_file: Path, sql: str) -> bool:
 
 
 def get_failed_dq_checks(
-    project,
-    dataset,
-    table,
-    test_type,
-    date_partition_parameter,
-    target_gcp_project,
-    target_dataset,
-):
+    project: str,
+    dataset: str,
+    table: str,
+    test_type: str,
+    date: str,
+    target_gcp_project: str,
+    target_dataset: str,
+) -> DataFrame:
     # TO-DO if tables are different
     # for each dataset then loop through all of them
-    sql = f"""
+    sql = dedent(
+        f"""
         SELECT
             additional_information,
             project,
@@ -51,35 +55,33 @@ def get_failed_dq_checks(
         AND dq_check = '{test_type}'
         AND table = '{table}'
         """
+    )
+
     bigquery = BigQueryClient(
         project=target_gcp_project, dataset=target_dataset
     )
     job = bigquery.fetch_results(sql)
-    df = job.result().to_dataframe()
-    print(df)
-    return df
+
+    return job.result().to_dataframe()
 
 
-def get_all_paths_yaml(extension, config_root_path: str):
+def get_all_paths_yaml(extension: str, config_root_path: str) -> List[str]:
 
-    # TODO: this should live in utils.py
     result = []
-    # logging.info(config_root_path)
-    for root, dirs, files in os.walk(config_root_path):
-        print(f"{files}")
+    for root, _, files in os.walk(config_root_path):
         for file in files:
-            print(f"{file}")
             if extension in file:
                 result.append(os.path.join(root, file))
+
     if not result:
         logging.info("No config files found !")
         # TODO: raise exception?
-    else:
-        return result
+
+    return result
 
 
-def read_config(config_path: str):
-    # TODO: move to utils.py
+def read_config(config_path: str) -> Dict[Any, Any]:
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
+
     return config

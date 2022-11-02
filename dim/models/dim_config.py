@@ -5,14 +5,20 @@ import attr
 
 @attr.s(auto_attribs=True)
 class DimCheckOptions:
-    threshold: str
-    slack_alert: bool
+    threshold: str = attr.ib()
+    enable_slack_alert: bool = attr.ib()
 
 
 @attr.s(auto_attribs=True)
 class DimCheck:
     type: str = attr.ib()
-    options: DimCheckOptions
+    options: DimCheckOptions = attr.ib()
+
+    @type.validator
+    def validate_type(self, attribute, value):
+        """Check that owner is a valid email address."""
+
+        pass
 
 
 @attr.s(auto_attribs=True)
@@ -27,6 +33,12 @@ class DimConfig:
 
     @owner.validator
     def validate_owner(self, attribute, value):
+        """Check that owner is a valid email address."""
+
+        pass
+
+    @tier.validator
+    def validate_tier(self, attribute, value):
         """Check that owner is a valid email address."""
 
         pass
