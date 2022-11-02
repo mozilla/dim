@@ -1,31 +1,33 @@
 from textwrap import dedent
 
+from dim.models.dim_config import DimConfig
 from dim.models.dq_checks.not_null import NotNull
 
 
 def test_not_null_pass():
     """ """
 
-    config = {
-        "dim_config": {
+    config = DimConfig.from_dict(
+        {
             "owner": ["akommasani@mozilla.com"],
-            "tests": [
+            "tier": "tier_3",
+            "dim_tests": [
                 {
                     "type": "not_null",
-                    "config": {
+                    "options": {
                         "columns": ["segment"],
                         "threshold": "row_count >= 1",
                     },
                 }
             ],
         }
-    }
+    )
     dq_check = NotNull(
         project_id="test_project",
         dataset="test_dataset",
         table="test_table",
         dataset_owner="akommasani@mozilla.com",
-        config=config["dim_config"]["tests"][0]["config"],
+        config=config.dim_tests[0].options,
         date="2022-01-13",
     )
     _, generated_sql = dq_check.generate_test_sql()
