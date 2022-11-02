@@ -7,8 +7,8 @@ import cattrs
 
 @attr.s(auto_attribs=True)
 class DimCheckOptions:
-    threshold: Optional[str] = attr.ib()
-    columns: Optional[List[str]] = attr.ib()
+    threshold: Optional[str] = attr.ib(None)
+    columns: Optional[List[str]] = attr.ib(None)
     partition: Optional[datetime] = attr.ib(None)
     enable_slack_alert: Optional[bool] = attr.ib(False)
 

@@ -1,4 +1,5 @@
 """BigQuery handler."""
+import logging
 from typing import Any, Dict, Optional
 
 import attr
@@ -10,24 +11,26 @@ from google.cloud.exceptions import NotFound
 class BigQueryClient:
     """Handler for requests to BigQuery."""
 
-    project: str
+    project_id: str
     dataset: str
     _client: Optional[bigquery.client.Client] = None
 
     @property
     def client(self) -> bigquery.client.Client:
         """Return BigQuery client instance."""
-        self._client = self._client or bigquery.client.Client(self.project)
+        self._client = self._client or bigquery.client.Client(self.project_id)
         return self._client
 
     def if_tbl_exists(self, table_ref):
         try:
             self.client.get_table(table_ref)
-            return True
         except NotFound:
             return False
 
+        return True
+
     def create_table(self, table):
+        logging.info("Creating new BQ table: %s" % table)
         return self.client.create_table(table)
 
     def fetch_results(self, sql):
@@ -43,7 +46,7 @@ class BigQueryClient:
         """Execute a SQL query and applies the provided parameters."""
         bq_dataset = bigquery.dataset.DatasetReference.from_string(
             dataset if dataset else self.dataset,
-            default_project=self.project,
+            default_project=self.project_id,
         )
         kwargs: Dict[str, Any] = {
             "allow_large_results": True,

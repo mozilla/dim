@@ -29,6 +29,11 @@ class StartEndException(DimException):
         super().__init__(f"{slug} -> {message}")
 
 
+class CmdDateInfoNotProvidedException(DimException):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class DateRangeException(DimException):
     """"""
 
