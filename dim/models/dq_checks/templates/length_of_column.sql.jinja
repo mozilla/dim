@@ -1,0 +1,21 @@
+WITH CTE AS (
+    SELECT
+        COUNT(*) AS row_count
+    FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+    WHERE
+        submission_date = DATE("{{ partition }}")
+        AND LENGTH({% for column in columns %}{{ column }}{{ "," if not loop.last else "" }}{% endfor %}) > {{ allowed_length }}
+    HAVING COUNT(*) > 1
+)
+
+SELECT
+    TO_JSON_STRING(CTE) AS additional_information,
+    "{{ project_id }}" AS project_id,
+    "{{ dataset }}" AS dataset,
+    "{{ table }}" AS table,
+    "{{ dq_check }}" AS dq_check,
+    "{{ dataset_owner }}" AS dataset_owner,
+    "{{ slack_alert }}" AS slack_alert,
+    CURRENT_DATETIME() AS created_date
+FROM CTE
+WHERE {{ threshold }}
