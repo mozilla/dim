@@ -1,0 +1,30 @@
+dim_config:
+  owner:
+    email: kik@null.com
+    slack: kik
+  slack_alerts:
+    enabled: true
+    notify:
+      channels:
+        - data-monitoring-mvp
+  tier: tier_3
+  dim_tests:
+    # - type: table_row_count
+    #   params:
+    #     condition: ">= 1"
+    # - type: not_null
+    #   params:
+    #     condition: "> 0"
+    #     columns:
+    #       - project_id
+    #       - dataset
+    # - type: uniqueness
+    #   params:
+    #     columns:
+    #       - project_id
+    - type: column_length
+      params:
+        columns:
+          - project_id
+        condition: "<> 2"
+

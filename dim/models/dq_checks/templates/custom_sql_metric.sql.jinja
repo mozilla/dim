@@ -1,19 +1,22 @@
 
 WITH CTE AS (
-{{sql}}
+    {{sql}}
 ),
 
 CTE2 AS (
-SELECT TO_JSON_STRING(STRUCT(TO_JSON_STRING(CTE) AS additional_information, '''{{ sql }}''' AS sql))  AS additional_information
+SELECT
+    TO_JSON_STRING(STRUCT(TO_JSON_STRING(CTE) AS additional_information,
+    '''{{ sql }}''' AS sql))  AS additional_information
 FROM CTE
-WHERE  {{ threshold }}
+WHERE {{ condition }}
 )
 
-SELECT *, "{{ project_id }}" AS project_id,
-"{{ dataset }}" AS dataset,
-"{{ table }}" AS table,
-"{{ dq_check }}" AS dq_check,
-"{{ dataset_owner }}" AS dataset_owner,
-"{{ slack_alert }}" AS slack_alert,
-CURRENT_DATETIME() AS created_date
+SELECT *,
+    '{{ project_id }}' AS project_id,
+    '{{ dataset }}' AS dataset,
+    '{{ table }}' AS table,
+    '{{ dq_check }}' AS dq_check,
+    '{{ dataset_owner }}' AS dataset_owner,
+    '{{ alerts_enabled }}' AS alerts_enabled,
+    CURRENT_DATETIME() AS actual_run_date
 FROM CTE2

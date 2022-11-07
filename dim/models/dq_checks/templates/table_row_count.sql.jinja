@@ -1,16 +1,21 @@
-WITH CTE AS (SELECT
-COUNT(*) AS row_count
-FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
-WHERE
-submission_date = DATE("{{ partition }}")
+WITH CTE AS (
+    SELECT
+        COUNT(*) AS row_count
+    FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+    WHERE date_partition = DATE('{{ params.partition }}')
 )
 
-SELECT TO_JSON_STRING(CTE) AS additional_information, "{{ project_id }}" AS project_id,
-"{{ dataset }}" AS dataset,
-"{{ table }}" AS table,
-"{{ dq_check }}" AS dq_check,
-"{{ dataset_owner }}" AS dataset_owner,
-"{{ slack_alert }}" AS slack_alert,
-CURRENT_DATETIME() AS created_date
+SELECT
+    '{{ project_id }}' AS project_id,
+    '{{ dataset }}' AS dataset,
+    '{{ table }}' AS table,
+    '{{ dq_check }}' AS dq_check,
+    DATE('{{ params.partition }}') AS date_partition,
+    CURRENT_DATETIME() AS actual_run_date,
+    '{{ params.owner }}' AS owner,
+    CAST('{{ params.alert_enabled }}' AS BOOL) AS alert_enabled,
+    CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
+    TO_JSON_STRING(CTE) AS additional_information,
+    '{{ params.run_id }}' AS run_id,
+    IF(row_count {{ params.condition }}, True, False) AS passed,
 FROM CTE
-WHERE  {{ threshold }}
