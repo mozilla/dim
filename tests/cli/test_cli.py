@@ -4,8 +4,12 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from dim.cli import backfill, run, validate
-from dim.error import DateRangeException, DimConfigError
+from dim.cli import backfill, mute, run, validate
+from dim.error import (
+    CmdDateInfoNotProvidedException,
+    DateRangeException,
+    DimConfigError,
+)
 
 
 @pytest.fixture
@@ -141,3 +145,56 @@ def test_validate(
         assert result.exc_info[0] == expected_exception
 
     assert actual_exit_code == expected_exit_code
+
+
+@patch("dim.cli.mute_alerts_for_date")
+@pytest.mark.parametrize(
+    "date,start_date,end_date,expected_exit_code,\
+        expected_call_cnt,expected_exception",
+    [
+        ("2022-01-01", None, None, 0, 1, None),
+        (None, None, None, 1, 0, CmdDateInfoNotProvidedException),
+        (None, "2022-01-02", "2022-01-01", 1, 0, DateRangeException),
+        (None, "2022-01-01", "2022-01-10", 0, 10, None),
+    ],
+)
+def test_mute(
+    mute_patch,
+    runner,
+    run_settings,
+    date,
+    start_date,
+    end_date,
+    expected_exit_code,
+    expected_call_cnt,
+    expected_exception,
+):
+    cmd_args = "--project_id={} --dataset={} --table={}".format(*run_settings)
+    cmd_args += f" --date={date}" if date else ""
+    cmd_args += f" --start_date={start_date}" if start_date else ""
+    cmd_args += f" --end_date={end_date}" if end_date else ""
+
+    result = runner.invoke(mute, cmd_args.split(" "))
+
+    actual_exit_code = result.exit_code
+
+    if actual_exit_code != 0:
+        assert result.exc_info[0] == expected_exception
+
+    assert actual_exit_code == expected_exit_code
+    assert mute_patch.call_count == expected_call_cnt
+
+    if expected_exit_code == 0 and expected_call_cnt > 1:
+        mute_patch.call_args_list[0][0] == (
+            *run_settings,
+            datetime.datetime(*map(int, start_date.split("-"))),
+        )
+        mute_patch.call_args_list[-1][0] == (
+            *run_settings,
+            datetime.datetime(*map(int, end_date.split("-"))),
+        )
+
+    if expected_exit_code == 0 and expected_call_cnt == 1:
+        mute_patch.assert_called_once_with(
+            *run_settings, datetime.datetime(*map(int, date.split("-")))
+        )
