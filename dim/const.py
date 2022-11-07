@@ -15,6 +15,9 @@ TEST_CLASS_MAPPING = {
         custom_sql_metric, "CustomSqlMetric"  # noqa: F405
     ),
     "table_row_count": getattr(table_row_count, "TableRowCount"),  # noqa: F405
+    "length_of_column": getattr(
+        length_of_column, "LengthOfColumn"  # noqa: F405
+    ),
 }
 
 
