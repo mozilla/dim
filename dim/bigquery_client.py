@@ -21,7 +21,7 @@ class BigQueryClient:
         self._client = self._client or bigquery.client.Client(self.project_id)
         return self._client
 
-    def if_tbl_exists(self, table_ref):
+    def bq_table_exists(self, table_ref):
         try:
             self.client.get_table(table_ref)
         except NotFound:
@@ -68,5 +68,5 @@ class BigQueryClient:
         config = bigquery.job.QueryJobConfig(
             default_dataset=bq_dataset, **kwargs
         )
-        job = self.client.query(query, config)
-        job.result()
+
+        return self.client.query(query, config).result()

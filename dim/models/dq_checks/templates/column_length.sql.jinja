@@ -1,7 +1,6 @@
 WITH CTE AS (
     SELECT
-        {% for column in params.columns %}COUNTIF({{ column }} IS NULL) AS {{ column }}_null_count,
-        {% endfor %}
+        {% for column in params.columns %}COUNTIF(LENGTH({{ column }}) {{ params.condition }} ) AS {{ column }}_length_mismatch_count,{% endfor %}
     FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
     WHERE
         date_partition = DATE('{{ params.partition }}')
@@ -19,5 +18,5 @@ SELECT
     CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
     TO_JSON_STRING(CTE) AS additional_information,
     '{{ params.run_id }}' AS run_id,
-    IF({% for column in params.columns %}{{ column }}_null_count{{ "" if loop.last else " + " }}{% endfor %} {{ params.condition }}, False, True) AS passed,
+    IF({% for column in params.columns %}{{ column }}_length_mismatch_count{{ "" if loop.last else " + " }}{% endfor %} > 0, False, True) AS passed,
 FROM CTE

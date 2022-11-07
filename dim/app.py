@@ -1,72 +1,102 @@
+import json
 import logging
 from datetime import datetime
+from textwrap import dedent
+from uuid import uuid4
 
+import attr
+
+from dim.bigquery_client import BigQueryClient
 from dim.const import CONFIG_EXTENSION, CONFIG_ROOT_PATH, TEST_CLASS_MAPPING
 from dim.models.dim_config import DimConfig
 from dim.slack import send_slack_alert
 from dim.utils import get_all_paths_yaml, is_alert_muted, read_config
 
+DESTINATION_PROJECT = "data-monitoring-dev"
+DESTINATION_DATASET = "monitoring_derived"
+
 
 def run_check(project_id: str, dataset: str, table: str, date: datetime):
+    run_uuid = uuid4()
+
     logging.info(
-        "Running data checks on %s:%s.%s for date: %s"
-        % (project_id, dataset, table, date)
+        "Running data checks on %s:%s.%s for date: %s (run_id: %s)"
+        % (project_id, dataset, table, date, run_uuid)
     )
 
     config_paths = (
         CONFIG_ROOT_PATH + "/" + project_id + "/" + dataset + "/" + table
     )
-    for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
-        project_id, dataset, table = config_path.split("/")[1:-1]
 
+    for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
         dim_config = DimConfig.from_dict(
             read_config(config_path=config_path)["dim_config"]
         )
 
-        # TODO: in future the rest of the code should
-        # handle multiple owners and alerting people
-        dataset_owner = dim_config.owner
         alert_muted = is_alert_muted(project_id, dataset, table, date)
-
-        # TODO: should generate per table report containign all issues detected
+        slack_alert_settings = dim_config.slack_alerts
 
         for dim_test in dim_config.dim_tests:
-            test_type = dim_test.type
-
-            dq_check = TEST_CLASS_MAPPING[test_type](
+            dim_check = TEST_CLASS_MAPPING[dim_test.type](
                 project_id=project_id,
                 dataset=dataset,
                 table=table,
-                dataset_owner=dataset_owner,
-                config=dim_test.options,
-                date=date,
             )
 
-            _, test_sql = dq_check.generate_test_sql()
-            dq_check.execute_test_sql(sql=test_sql)
+            query_params = {
+                **attr.asdict(dim_test.params),
+                "owner": json.dumps(attr.asdict(dim_config.owner)),
+                "alert_enabled": slack_alert_settings.enabled,
+                "alert_muted": alert_muted,
+                "partition": date,
+                "run_id": run_uuid,
+            }
+            _, test_sql = dim_check.generate_test_sql(query_params)
 
-        # TODO: or whatever other form of alerting is set up
-        # TODO: alerts should only be sent out on failure
-        if not alert_muted:
-            if dim_test.options.enable_slack_alert:
-                logging.info(
-                    "Sending out an alert for %s:%s.%s for date: %s"
-                    % (project_id, dataset, table, date)
-                )
+            print(test_sql)
 
-                send_slack_alert(
-                    dim_test.options.channel,
-                    project_id,
-                    dataset,
-                    table,
-                    test_type,
-                    dataset_owner[0]["slack_handle"],
-                    date,
-                )
+            dim_check.execute_test_sql(sql=test_sql)
+
+        # TODO: extract into new function
+        sql = dedent(
+            f"""
+            SELECT
+                *
+            FROM `monitoring_derived.test_results`
+            WHERE
+                project_id = '{project_id}'
+                AND dataset = '{dataset}'
+                AND table = '{table}'
+                AND run_id = '{run_uuid}'
+                AND NOT passed
+            """
+        )
+
+        bigquery = BigQueryClient(
+            project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
+        )
+        job = bigquery.fetch_results(sql)
+
+        failed_dim_checks = job.result().to_dataframe().to_dict("records")
+
+        if (
+            failed_dim_checks
+            and slack_alert_settings.enabled
+            and not alert_muted
+        ):
+            logging.info(
+                "Sending out an alert for %s:%s.%s for date: %s"
+                % (project_id, dataset, table, date)
+            )
+
+            send_slack_alert(
+                channels=slack_alert_settings.notify.channels,
+                info=str(failed_dim_checks),
+            )
 
         else:
             logging.info(
-                "Alerts are muted for %s:%s.%s for date: %s"
+                "Alerts are muted or disabled for %s:%s.%s for date: %s"
                 % (project_id, dataset, table, date)
             )
 

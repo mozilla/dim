@@ -1,8 +1,8 @@
 from dim.models.dq_checks.base import Base
 
 
-class Uniqueness(Base):
-    DQ_CHECK_NAME = "uniqueness"
+class ColumnLength(Base):
+    DQ_CHECK_NAME = "column_length"
 
     def __init__(
         self,

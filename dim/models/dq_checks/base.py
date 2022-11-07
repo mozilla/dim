@@ -1,7 +1,8 @@
+# import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-from cattrs import unstructure
+# from cattrs import unstructure
 from jinja2 import Environment, FileSystemLoader
 
 from dim.bigquery_client import BigQueryClient
@@ -27,33 +28,35 @@ class Base:
         project_id: str,
         dataset: str,
         table: str,
-        dataset_owner: List[str],
+        dq_check: str,
     ):
         self.project_id = project_id
         self.dataset = dataset
         self.table = table
-        self.dataset_owner = dataset_owner
+        self.dq_check = dq_check
 
     @property
     def bigquery(self):
         """Return the BigQuery client instance."""
 
         return BigQueryClient(
-            project=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
+            project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
         )
 
-    def render_sql(self, dq_check: str, render_kwargs: Dict[str, Any]):
+    def render_sql(self, render_kwargs: Dict[str, Any]):
         """Render and return the SQL from a template."""
 
         templateLoader = FileSystemLoader(TEMPLATES_LOC)
         templateEnv = Environment(loader=templateLoader)
-        template = templateEnv.get_template(dq_check + TEMPLATE_FILE_EXTENSION)
+        template = templateEnv.get_template(
+            self.dq_check + TEMPLATE_FILE_EXTENSION
+        )
 
         sql = template.render(**render_kwargs)
 
         return sql
 
-    def generate_test_sql(self, dq_check):
+    def generate_test_sql(self, params):
         generated_sql_folder = Path(
             GENERATED_SQL_FOLDER
             + "/"
@@ -68,16 +71,14 @@ class Base:
             generated_sql_folder
         )
 
-        target_file = generated_sql_folder.joinpath(f"{dq_check}.sql")
+        target_file = generated_sql_folder.joinpath(f"{self.dq_check}.sql")
         generated_sql = self.render_sql(
-            dq_check,
             {
                 "project_id": self.project_id,
                 "dataset": self.dataset,
                 "table": self.table,
-                "dq_check": dq_check,
-                "dataset_owner": self.dataset_owner,
-                **unstructure(self.config),
+                "dq_check": self.dq_check,
+                "params": params,
             },
         )
 
@@ -86,8 +87,8 @@ class Base:
         return target_file, generated_sql
 
     def execute_test_sql(self, sql):
-        self.bigquery.execute(
+        return self.bigquery.execute(
             sql,
-            destination_table=DESTINATION_TABLE,  # the tables can be different for each dataset depending on the size of dataset  # noqa: E501
-            dataset=f"{DESTINATION_DATASET}",
+            dataset=DESTINATION_DATASET,
+            destination_table=DESTINATION_TABLE,
         )
