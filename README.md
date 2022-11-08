@@ -1,3 +1,5 @@
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/mozilla/dim/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/mozilla/dim/tree/main)
+
 # Data Integrity Monitoring (dim)
 
 `dim` is a simple application that can be used to define specific rules which data in your tables should follow. Such as number of rows in a specific date partition. It also provides the functionality to execute those checks and persists its metadata in a table in BigQuery.
