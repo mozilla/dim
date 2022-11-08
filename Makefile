@@ -76,8 +76,8 @@ install-requirements: setup-venv upgrade-pip pip-compile
 install-requirements-dev: setup-venv upgrade-pip pip-compile-dev
 	@venv/bin/python -m pip install -r requirements/dev-requirements.txt
 
-update-local-env: install-requirements install-requirements-dev
 update-deps: pip-compile pip-compile-dev
+update-local-env: install-requirements install-requirements-dev
 
 .PHONY: clean
 make clean:  # Removes local env
