@@ -5,15 +5,64 @@ from textwrap import dedent
 from uuid import uuid4
 
 import attr
+from tabulate import tabulate
 
 from dim.bigquery_client import BigQueryClient
-from dim.const import CONFIG_EXTENSION, CONFIG_ROOT_PATH, TEST_CLASS_MAPPING
+from dim.const import (
+    CONFIG_EXTENSION,
+    CONFIG_ROOT_PATH,
+    DESTINATION_DATASET,
+    DESTINATION_PROJECT,
+    DESTINATION_TABLE,
+    TEST_CLASS_MAPPING,
+)
 from dim.models.dim_config import DimConfig
 from dim.slack import send_slack_alert
 from dim.utils import get_all_paths_yaml, is_alert_muted, read_config
 
-DESTINATION_PROJECT = "data-monitoring-dev"
-DESTINATION_DATASET = "monitoring_derived"
+# import pandas as pd
+
+
+def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
+    sql = dedent(
+        f"""
+        SELECT
+            CONCAT(project_id, '.', dataset, '.', table) AS dataset,
+            dq_check,
+            actual_run_date,
+            date_partition,
+            owner,
+            additional_information,
+            run_id,
+        FROM `{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{DESTINATION_TABLE}`
+        WHERE
+            project_id = '{project_id}'
+            AND dataset = '{dataset}'
+            AND table = '{table}'
+            AND run_id = '{run_uuid}'
+            AND NOT passed
+        """
+    )
+
+    bigquery = BigQueryClient(
+        project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
+    )
+
+    job = bigquery.fetch_results(sql)
+
+    return job.result().to_dataframe().to_dict("records")
+
+
+def format_failed_check_results(results):
+    formatted_results = tabulate(
+        results,
+        headers="keys",
+        tablefmt="psql",
+        stralign="center",
+    )
+
+    # TODO: this message can be formatted better
+    return f"Dim tests failed:\n{formatted_results}"
 
 
 def run_check(project_id: str, dataset: str, table: str, date: datetime):
@@ -28,6 +77,9 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
         CONFIG_ROOT_PATH + "/" + project_id + "/" + dataset + "/" + table
     )
 
+    # TODO: it would also be nice to track bytes process
+    # or billed to get an idea how much running each test costs
+
     for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
         dim_config = DimConfig.from_dict(
             read_config(config_path=config_path)["dim_config"]
@@ -37,7 +89,14 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
         slack_alert_settings = dim_config.slack_alerts
 
         for dim_test in dim_config.dim_tests:
-            dim_check = TEST_CLASS_MAPPING[dim_test.type](
+            test_type = dim_test.type
+
+            logging.info(
+                "Running %s check on %s:%s.%s for date: %s"
+                % (test_type, project_id, dataset, table, date)
+            )
+
+            dim_check = TEST_CLASS_MAPPING[test_type](
                 project_id=project_id,
                 dataset=dataset,
                 table=table,
@@ -52,32 +111,20 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                 "run_id": run_uuid,
             }
             _, test_sql = dim_check.generate_test_sql(query_params)
-
-            print(test_sql)
-
             dim_check.execute_test_sql(sql=test_sql)
 
-        # TODO: extract into new function
-        sql = dedent(
-            f"""
-            SELECT
-                *
-            FROM `monitoring_derived.test_results`
-            WHERE
-                project_id = '{project_id}'
-                AND dataset = '{dataset}'
-                AND table = '{table}'
-                AND run_id = '{run_uuid}'
-                AND NOT passed
-            """
-        )
+            logging.info(
+                "Finished running %s check on %s:%s.%s for date: %s"
+                % (test_type, project_id, dataset, table, date)
+            )
 
-        bigquery = BigQueryClient(
-            project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
+        logging.info(
+            "Retrieving failed results for %s:%s.%s for date: %s (run_id: %s)"
+            % (project_id, dataset, table, date, run_uuid)
         )
-        job = bigquery.fetch_results(sql)
-
-        failed_dim_checks = job.result().to_dataframe().to_dict("records")
+        failed_dim_checks = retrieve_failed_dim_checks(
+            project_id, dataset, table, run_uuid
+        )
 
         if (
             failed_dim_checks
@@ -91,7 +138,7 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
 
             send_slack_alert(
                 channels=slack_alert_settings.notify.channels,
-                info=str(failed_dim_checks),
+                info=format_failed_check_results(failed_dim_checks),
             )
 
         else:
@@ -101,6 +148,11 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
             )
 
     logging.info(
-        "Finished running data checks on %s:%s.%s for date: %s"
-        % (project_id, dataset, table, date)
+        "Test results have been stored in %s:%s.%s"
+        % (DESTINATION_PROJECT, DESTINATION_DATASET, DESTINATION_TABLE)
+    )
+
+    logging.info(
+        "Finished running data checks on %s:%s.%s for date: %s (run_id: %s)"
+        % (project_id, dataset, table, date, run_uuid)
     )

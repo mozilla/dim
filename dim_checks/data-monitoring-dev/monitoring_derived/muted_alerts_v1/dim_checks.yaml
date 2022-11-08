@@ -9,22 +9,35 @@ dim_config:
         - data-monitoring-mvp
   tier: tier_3
   dim_tests:
-    # - type: table_row_count
-    #   params:
-    #     condition: ">= 1"
-    # - type: not_null
-    #   params:
-    #     condition: "> 0"
-    #     columns:
-    #       - project_id
-    #       - dataset
-    # - type: uniqueness
-    #   params:
-    #     columns:
-    #       - project_id
+    - type: table_row_count
+      params:
+        condition: ">= 1"
+    - type: not_null
+      params:
+        condition: "> 0"
+        columns:
+          - project_id
+          - dataset
+    - type: uniqueness
+      params:
+        columns:
+          - project_id
     - type: column_length
       params:
         columns:
           - project_id
         condition: "<> 2"
-
+    - type: value_in_set
+      params:
+        columns:
+          - project_id
+        expected_values:
+          - data-monitoring-dev
+          - moz-fx-data-shared-prod
+    - type: custom_sql_metric
+      params:
+        sql: |
+              SELECT COUNT(*) AS total_count
+              FROM `data-monitoring-dev.monitoring_derived.muted_alerts_v1`
+              WHERE project_id = 'data_monitoring_dev' AND DATE(date_partition) = '2020-01-13'
+        condition: total_count > 3000
