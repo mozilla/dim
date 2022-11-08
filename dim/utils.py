@@ -5,6 +5,7 @@ from textwrap import dedent
 from typing import Any, Dict, List
 
 import yaml
+from google.cloud.bigquery.job import WriteDisposition
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.bigquery.table import Table
 
@@ -113,6 +114,68 @@ def mute_alerts_for_date(
         )
 
     # TODO: else: something went wrong, log error message
+
+
+def unmute_alerts_for_date(
+    project_id: str,
+    dataset: str,
+    table: str,
+    date: Any,
+):
+    logging.info(
+        "Unmuting alerts for %s:%s.%s for date: %s"
+        % (project_id, dataset, table, date)
+    )
+
+    bigquery = BigQueryClient(
+        project_id=dim.const.DESTINATION_PROJECT,
+        dataset=dim.const.DESTINATION_DATASET,
+    )
+
+    bq_table = get_muted_alerts_table()
+    create_muted_alerts_table_if_not_exists(bigquery, bq_table)
+
+    if not is_alert_muted(project_id, dataset, table, date):
+        logging.info(
+            "Alerts not muted for %s:%s.%s for date: %s. \
+                Nothing needs to be done."
+            % (project_id, dataset, table, date)
+        )
+        return
+
+    date_partition = date.date()
+
+    delete_statement = dedent(
+        f"""
+        SELECT
+            *
+        FROM `{str(bq_table)}`
+        WHERE
+            NOT (
+                project_id = '{project_id}'
+                AND dataset = '{dataset}'
+                AND table = '{table}'
+                AND date_partition = '{date_partition}'
+            )
+        """
+    )
+
+    result = bigquery.execute(
+        delete_statement,
+        dataset=dim.const.DESTINATION_DATASET,
+        destination_table=dim.const.MUTED_ALERTS_TABLE_NAME,
+        write_disposition=WriteDisposition.WRITE_TRUNCATE,
+        schema_update_options=None,
+    )
+
+    if not result:
+        # TODO: else: something went wrong, log error message
+        pass
+
+    logging.info(
+        "Alerts for %s:%s.%s for partition: %s has been unmuted."
+        % (project_id, dataset, table, date_partition)
+    )
 
 
 def create_directory(path_to_create: Path) -> bool:

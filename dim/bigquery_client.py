@@ -41,6 +41,9 @@ class BigQueryClient:
         query: str,
         destination_table: Optional[str] = None,
         write_disposition: Optional[bigquery.job.WriteDisposition] = None,
+        schema_update_options: Optional[
+            bigquery.job.SchemaUpdateOption
+        ] = None,
         dataset: Optional[str] = None,
     ) -> None:
         """Execute a SQL query and applies the provided parameters."""
@@ -64,6 +67,9 @@ class BigQueryClient:
 
         if write_disposition:
             kwargs["write_disposition"] = write_disposition
+
+        if not schema_update_options:
+            del kwargs["schema_update_options"]
 
         config = bigquery.job.QueryJobConfig(
             default_dataset=bq_dataset, **kwargs
