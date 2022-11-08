@@ -31,8 +31,9 @@ DESTINATION_TABLE = "dim_run_history_v1"
 
 VALID_TIERS = ("tier_1", "tier_2", "tier_3")
 
+MUTED_ALERTS_TABLE_NAME = "muted_alerts_v1"
 MUTED_ALERTS_TABLE = (
-    f"{DESTINATION_PROJECT}.{DESTINATION_DATASET}.muted_alerts_v1"
+    f"{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{MUTED_ALERTS_TABLE_NAME}"
 )
 
 TEMPLATES_LOC = "dim/models/dq_checks/templates"

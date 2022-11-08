@@ -11,7 +11,7 @@ from dim.error import (
     DimConfigError,
 )
 from dim.models.dim_config import DimConfig
-from dim.utils import mute_alerts_for_date, read_config
+from dim.utils import mute_alerts_for_date, read_config, unmute_alerts_for_date
 
 logging.basicConfig(level=LOGGING_LEVEL)
 
@@ -175,4 +175,68 @@ def mute(
     date_iteration = start_date
     while date_iteration <= end_date:
         mute_alerts_for_date(project_id, dataset, table, date_iteration)
+        date_iteration += timedelta(days=1)
+
+
+@cli.command()
+@click.option("--project_id", required=False, type=str, default=SOURCE_PROJECT)
+@click.option("--dataset", required=True, type=str)
+@click.option(
+    "--table", required=True, type=str
+)  # required for now until we add support
+# for grabbing all configs in a dataset
+@click.option(
+    "--start_date",
+    required=False,
+    type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
+)
+@click.option(
+    "--end_date",
+    required=False,
+    type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
+)
+@click.option(
+    "--date",
+    required=False,
+    type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
+)
+def unmute(
+    project_id: str,
+    dataset: str,
+    table: str,
+    start_date: click.DateTime,
+    end_date: click.DateTime,
+    date: click.DateTime,
+):
+    if not start_date and not end_date and not date:
+        raise CmdDateInfoNotProvidedException(
+            """\
+            Need to provide a date range using \
+            `--start_date` and `--end_date` or \
+            a `--date` for which to unmute alerts
+            """
+        )
+
+    if start_date and end_date:
+        logging.info(
+            "Unmuting all alerts for %s:%s.%s for date range: %s - %s"
+            % (project_id, dataset, table, start_date, end_date)
+        )
+
+    if not start_date and not end_date:
+        start_date = end_date = date
+
+    if not any([start_date, end_date]):
+        raise CmdDateInfoNotProvidedException(
+            """\
+            Please make sure both `--start_date` \
+            and `--end_date` have a date value provided
+            """
+        )
+
+    validate_date_range(start_date, end_date)
+
+    date_iteration = start_date
+    while date_iteration <= end_date:
+        unmute_alerts_for_date(project_id, dataset, table, date_iteration)
         date_iteration += timedelta(days=1)
