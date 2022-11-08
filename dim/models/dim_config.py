@@ -42,6 +42,8 @@ class DimCheckParams:
     """ """
 
     condition: Optional[str] = attr.ib(None)
+    sql: Optional[str] = attr.ib(None)
+    expected_values: Optional[List[str]] = attr.ib(None)
     columns: Optional[List[str]] = attr.ib(None)
     partition: Optional[datetime] = attr.ib(None)
     enable_alerts_enabled: Optional[bool] = attr.ib(False)
