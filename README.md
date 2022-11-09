@@ -12,6 +12,44 @@
 - docker
 - BigQuery
 
+## Project structure
+
+```
+.
+├── Dockerfile
+├── Makefile
+├── README.md
+├── pyproject.toml
+├── dim
+│   ├── app.py
+│   ├── bigquery_client.py
+│   ├── cli.py
+│   ├── const.py
+│   ├── error.py
+│   ├── models
+│   │   ├── dim_config.py
+│   │   └── dq_checks - contains dim test type object definitions
+│   │       └── templates - contains SQL templates used by corredponding dim tests
+│   ├── slack.py
+│   └── utils.py
+├── dim_checks - contains dim configs that specify tests and their conditions for tables
+│   ├── [project]
+│   │   └── [dataset]
+│   │       └── [table]
+│   │           └── dim_checks.yaml
+│   └── [project]
+│       └── [table]
+│           └── [table]
+│               └── dim_checks.yaml
+├── docs
+│   └── static - contains static files used by docs in the repo
+├── requirements - contains requirement files
+└── tests
+    ├── cli - cli module tests
+    │   └── test_configs - contains .yaml configs used for testing
+    └── dim_checks - contains tests for dim test types
+```
+
 ## Getting Started (Docker)
 
 1. Inside `dim_checks/` create a folder structure corresponding to `[project_id]/[dataset]/[table]` with `dim_checks.yaml` file inside.
