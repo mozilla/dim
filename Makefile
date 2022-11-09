@@ -94,7 +94,7 @@ make clean:  # Removes local env
 #   $(eval $(TEST_TYPE_NAME):;@:)
 # endif
 
-DIM_CHECKS_FOLDER := dim/models/dq_checks
+DIM_CHECKS_FOLDER := dim/models/dim_check_type
 DIM_CHECKS_SQL_FOLDER := $(DIM_CHECKS_FOLDER)/templates
 
 add-new-dim-test-type:

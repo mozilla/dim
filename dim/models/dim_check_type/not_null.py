@@ -1,8 +1,8 @@
-from dim.models.dq_checks.base import Base
+from dim.models.dim_check_type.base import Base
 
 
-class ColumnLength(Base):
-    DQ_CHECK_NAME = "column_length"
+class NotNull(Base):
+    dim_check_type_NAME = "not_null"
 
     def __init__(
         self,
@@ -10,7 +10,7 @@ class ColumnLength(Base):
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.DQ_CHECK_NAME)
+        super().__init__(project_id, dataset, table, self.dim_check_type_NAME)
 
     def generate_test_sql(self, params):
         return super().generate_test_sql(params=params)

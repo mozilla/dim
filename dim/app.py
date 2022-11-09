@@ -14,7 +14,7 @@ from dim.const import (
     DESTINATION_DATASET,
     DESTINATION_PROJECT,
     DESTINATION_TABLE,
-    TEST_CLASS_MAPPING,
+    DIM_CHECK_CLASS_MAPPING,
 )
 from dim.models.dim_config import DimConfig
 from dim.slack import send_slack_alert
@@ -28,11 +28,12 @@ def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
         f"""
         SELECT
             CONCAT(project_id, '.', dataset, '.', table) AS dataset,
-            dq_check,
+            dim_check_type,
             actual_run_date,
             date_partition,
             owner,
-            additional_information,
+            query_results,
+            dim_check_context,
             run_id,
         FROM `{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{DESTINATION_TABLE}`
         WHERE
@@ -50,19 +51,47 @@ def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
 
     job = bigquery.fetch_results(sql)
 
-    return job.result().to_dataframe().to_dict("records")
+    return job.result().to_dataframe()
 
 
 def format_failed_check_results(results):
-    formatted_results = tabulate(
-        results,
+    dataset = results.iloc[0]["dataset"]
+    date_partition = results.iloc[0]["date_partition"]
+    run_id = results.iloc[0]["run_id"]
+    owner = results.iloc[0]["owner"]
+
+    results.drop(
+        ["dataset", "date_partition", "run_id", "owner"], axis=1, inplace=True
+    )
+
+    fail_details_tbl = tabulate(
+        results.to_dict("records"),
         headers="keys",
         tablefmt="psql",
         stralign="center",
     )
 
-    # TODO: this message can be formatted better
-    return f"Dim tests failed:\n{formatted_results}"
+    formatted_results = dedent(
+        f"""
+        :alert: Dim checks failed:
+        Table:     `{dataset}`
+        Partition: `{date_partition}`
+        Run id:    `{run_id}`
+        Owner:     `{owner}`
+
+        {fail_details_tbl}
+
+        > For full context you can use the following query:
+        ```
+        SELECT * FROM `{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{DESTINATION_TABLE}`  # noqa: E501
+        WHERE
+            run_id = "{run_id}"
+            AND date_partition = DATE("{date_partition}")
+        ```
+        """
+    )
+
+    return formatted_results.replace("# noqa: E501", "")
 
 
 def run_check(project_id: str, dataset: str, table: str, date: datetime):
@@ -88,6 +117,7 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
         alert_muted = is_alert_muted(project_id, dataset, table, date)
         slack_alert_settings = dim_config.slack_alerts
 
+        # TODO: test execution could technically be taking place in parallel
         for dim_test in dim_config.dim_tests:
             test_type = dim_test.type
 
@@ -96,7 +126,7 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                 % (test_type, project_id, dataset, table, date)
             )
 
-            dim_check = TEST_CLASS_MAPPING[test_type](
+            dim_check = DIM_CHECK_CLASS_MAPPING[test_type](
                 project_id=project_id,
                 dataset=dataset,
                 table=table,
@@ -111,7 +141,16 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                 "run_id": run_uuid,
             }
             _, test_sql = dim_check.generate_test_sql(query_params)
-            dim_check.execute_test_sql(sql=test_sql)
+            dim_check.execute_test_sql(
+                sql=test_sql.replace(
+                    "'[[dim_check_sql]]'",
+                    "'''"
+                    + test_sql.replace(
+                        "'[[dim_check_sql]]' AS dim_check_sql,", ""
+                    )
+                    + "'''",
+                )
+            )
 
             logging.info(
                 "Finished running %s check on %s:%s.%s for date: %s"
@@ -127,7 +166,7 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
         )
 
         if (
-            failed_dim_checks
+            failed_dim_checks.to_dict("records")
             and slack_alert_settings.enabled
             and not alert_muted
         ):

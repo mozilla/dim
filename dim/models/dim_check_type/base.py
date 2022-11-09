@@ -14,12 +14,12 @@ class Base:
         project_id: str,
         dataset: str,
         table: str,
-        dq_check: str,
+        dim_check_type: str,
     ):
         self.project_id = project_id
         self.dataset = dataset
         self.table = table
-        self.dq_check = dq_check
+        self.dim_check_type = dim_check_type
 
     @property
     def bigquery(self):
@@ -36,7 +36,7 @@ class Base:
         templateLoader = FileSystemLoader(dim.const.TEMPLATES_LOC)
         templateEnv = Environment(loader=templateLoader)
         template = templateEnv.get_template(
-            self.dq_check + dim.const.TEMPLATE_FILE_EXTENSION
+            self.dim_check_type + dim.const.TEMPLATE_FILE_EXTENSION
         )
 
         sql = template.render(**render_kwargs)
@@ -58,13 +58,15 @@ class Base:
             generated_sql_folder
         )
 
-        target_file = generated_sql_folder.joinpath(f"{self.dq_check}.sql")
+        target_file = generated_sql_folder.joinpath(
+            f"{self.dim_check_type}.sql"
+        )
         generated_sql = self.render_sql(
             {
                 "project_id": self.project_id,
                 "dataset": self.dataset,
                 "table": self.table,
-                "dq_check": self.dq_check,
+                "dim_check_type": self.dim_check_type,
                 "params": params,
             },
         )

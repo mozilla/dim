@@ -11,10 +11,9 @@ dim_config:
   dim_tests:
     - type: table_row_count
       params:
-        condition: ">= 1"
+        condition: ">= 20"
     - type: not_null
       params:
-        condition: "> 0"
         columns:
           - project_id
           - dataset
@@ -26,7 +25,7 @@ dim_config:
       params:
         columns:
           - project_id
-        condition: "<> 2"
+        condition: "= 2"
     - type: value_in_set
       params:
         columns:
@@ -34,10 +33,3 @@ dim_config:
         expected_values:
           - data-monitoring-dev
           - moz-fx-data-shared-prod
-    - type: custom_sql_metric
-      params:
-        sql: |
-              SELECT COUNT(*) AS total_count
-              FROM `data-monitoring-dev.monitoring_derived.muted_alerts_v1`
-              WHERE project_id = 'data_monitoring_dev' AND DATE(date_partition) = '2020-01-13'
-        condition: total_count > 3000

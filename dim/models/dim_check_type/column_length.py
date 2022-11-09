@@ -1,8 +1,8 @@
-from dim.models.dq_checks.base import Base
+from dim.models.dim_check_type.base import Base
 
 
-class ValueInSet(Base):
-    DQ_CHECK_NAME = "value_in_set"
+class ColumnLength(Base):
+    dim_check_type_NAME = "column_length"
 
     def __init__(
         self,
@@ -10,7 +10,7 @@ class ValueInSet(Base):
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.DQ_CHECK_NAME)
+        super().__init__(project_id, dataset, table, self.dim_check_type_NAME)
 
     def generate_test_sql(self, params):
         return super().generate_test_sql(params=params)
