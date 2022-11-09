@@ -1,8 +1,8 @@
-from dim.models.dq_checks.base import Base
+from dim.models.dim_check_type.base import Base
 
 
-class NotNull(Base):
-    DQ_CHECK_NAME = "not_null"
+class ColumnSumNotZero(Base):
+    dim_check_type_NAME = "column_sum_not_zero"
 
     def __init__(
         self,
@@ -10,7 +10,7 @@ class NotNull(Base):
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.DQ_CHECK_NAME)
+        super().__init__(project_id, dataset, table, self.dim_check_type_NAME)
 
     def generate_test_sql(self, params):
         return super().generate_test_sql(params=params)

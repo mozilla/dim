@@ -1,8 +1,8 @@
-from dim.models.dq_checks.base import Base
+from dim.models.dim_check_type.base import Base
 
 
-class TableRowCount(Base):
-    DQ_CHECK_NAME = "table_row_count"
+class ValueInSet(Base):
+    DQ_CHECK_NAME = "value_in_set"
 
     def __init__(
         self,

@@ -1,6 +1,6 @@
 import logging
 
-from dim.models.dq_checks import *  # noqa: F403
+from dim.models.dim_check_type import *  # noqa: F403, E501
 
 CONFIG_ROOT_PATH = "dim_checks"
 CONFIG_EXTENSION = ".yaml"
@@ -8,7 +8,7 @@ INPUT_DATE_FORMAT = "%Y-%m-%d"
 
 LOGGING_LEVEL = logging.INFO
 
-TEST_CLASS_MAPPING = {
+DIM_CHECK_CLASS_MAPPING = {
     "not_null": getattr(not_null, "NotNull"),  # noqa: F405
     "uniqueness": getattr(uniqueness, "Uniqueness"),  # noqa: F405
     "custom_sql_metric": getattr(
@@ -17,6 +17,9 @@ TEST_CLASS_MAPPING = {
     "table_row_count": getattr(table_row_count, "TableRowCount"),  # noqa: F405
     "column_length": getattr(column_length, "ColumnLength"),  # noqa: F405
     "value_in_set": getattr(value_in_set, "ValueInSet"),  # noqa: F405
+    "column_sum_not_zero": getattr(
+        column_sum_not_zero, "ColumnSumNotZero"  # noqa: F405
+    ),
 }
 
 
@@ -36,5 +39,5 @@ MUTED_ALERTS_TABLE = (
     f"{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{MUTED_ALERTS_TABLE_NAME}"
 )
 
-TEMPLATES_LOC = "dim/models/dq_checks/templates"
+TEMPLATES_LOC = "dim/models/dim_check_type/templates"
 TEMPLATE_FILE_EXTENSION = ".sql.jinja"

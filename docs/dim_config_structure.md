@@ -14,7 +14,7 @@
     │       └── channels [required] - a list of slack channels to notify about any failed tests.
     ├── tier [required] - Demonstrates how critical the table is.
     └── dim_tests [required] - a list of dim tests to run on the corresponding table.
-        ├── type [required] - dim test type, must be defined inside `dim/models/dq_checks/`
+        ├── type [required] - dim test type, must be defined inside `dim/models/dim_check_type/`
         └── params [required] - test dependant, provides additional information to format sql template used to execute the test. See `docs/dim_tests` for test specific settings.
 ```
 

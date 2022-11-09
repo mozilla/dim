@@ -1,0 +1,23 @@
+WITH CTE AS (
+    SELECT
+        COUNT(*) AS row_count
+    FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+    WHERE date_partition = DATE('{{ params.partition }}')
+)
+
+SELECT
+    '{{ project_id }}' AS project_id,
+    '{{ dataset }}' AS dataset,
+    '{{ table }}' AS table,
+    DATE('{{ params.partition }}') AS date_partition,
+    '{{ dim_check_type }}' AS dim_check_type,
+    IF(row_count {{ params.condition }}, True, False) AS passed,
+    '{{ params.owner }}' AS owner,
+    TO_JSON_STRING(CTE) AS query_results,
+    TO_JSON_STRING("{'condition': '{{ params.condition }}'}") AS dim_check_context,
+    CAST('{{ params.alert_enabled }}' AS BOOL) AS alert_enabled,
+    CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
+    '{{ params.run_id }}' AS run_id,
+    CURRENT_DATETIME() AS actual_run_date,
+    '[[dim_check_sql]]' AS dim_check_sql,
+FROM CTE

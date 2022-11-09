@@ -1,4 +1,4 @@
-from dim.models.dq_checks.base import Base
+from dim.models.dim_check_type.base import Base
 
 
 class REPLACE_ME(Base):

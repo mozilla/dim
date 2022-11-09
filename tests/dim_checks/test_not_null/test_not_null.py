@@ -1,7 +1,7 @@
 # from textwrap import dedent
 
 # from dim.models.dim_config import DimConfig
-# from dim.models.dq_checks.not_null import NotNull
+# from dim.models.dim_check_type.not_null import NotNull
 
 
 # def test_not_null_pass():
@@ -28,12 +28,12 @@
 #             ],
 #         }
 #     )
-#     dq_check = NotNull(
+#     dim_check_type = NotNull(
 #         project_id="test_project",
 #         dataset="test_dataset",
 #         table="test_table",
 #     )
-#     _, generated_sql = dq_check.generate_test_sql(config.dim_tests[0].params)
+#     _, generated_sql = dim_check_type.generate_test_sql(config.dim_tests[0].params)  # noqa: E501
 
 #     expected_sql = dedent(
 #         """\
@@ -50,11 +50,11 @@
 #         )
 
 #         SELECT
-#             TO_JSON_STRING(CTE) AS additional_information,
+#             TO_JSON_STRING(CTE) AS query_results,
 #             'test_project' AS project_id,
 #             'test_dataset' AS dataset,
 #             'test_table' AS table,
-#             'not_null" AS dq_check,
+#             'not_null" AS dim_check_type,
 #             '{"email": "akommasani@mozilla.com"}' AS dataset_owner,
 #             'true' AS alerts_enabled,
 #             CURRENT_DATETIME() AS actual_run_date

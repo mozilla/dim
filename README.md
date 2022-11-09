@@ -28,7 +28,7 @@
 │   ├── error.py
 │   ├── models
 │   │   ├── dim_config.py
-│   │   └── dq_checks - contains dim test type object definitions
+│   │   └── dim_check_type - contains dim test type object definitions
 │   │       └── templates - contains SQL templates used by corredponding dim tests
 │   ├── slack.py
 │   └── utils.py

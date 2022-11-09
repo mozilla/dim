@@ -1,8 +1,8 @@
-from dim.models.dq_checks.base import Base
+from dim.models.dim_check_type.base import Base
 
 
-class CustomSqlMetric(Base):
-    DQ_CHECK_NAME = "custom_sql_metric"
+class TableRowCount(Base):
+    DQ_CHECK_NAME = "table_row_count"
 
     def __init__(
         self,
