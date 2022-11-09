@@ -163,3 +163,5 @@ cython_debug/
 *service_account*
 # for now adding generated_sql/ to list of folder to ignore
 generated_sql/
+# folder containing personal notes
+notes/
