@@ -83,12 +83,37 @@ update-local-env: install-requirements install-requirements-dev
 make clean:  # Removes local env
 	@rm -rf venv/
 
+
+# # source: https://stackoverflow.com/a/14061796
+# this is to "support" positional args for the add-new-dim-test-type command
+# # If the first argument is "run"...
+# ifeq (add-new-dim-test-type,$(firstword $(MAKECMDGOALS)))
+#   # use the rest as arguments for "run"
+#   TEST_TYPE_NAME := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+#   # ...and turn them into do-nothing targets
+#   $(eval $(TEST_TYPE_NAME):;@:)
+# endif
+
+DIM_CHECKS_FOLDER := dim/models/dq_checks
+DIM_CHECKS_SQL_FOLDER := $(DIM_CHECKS_FOLDER)/templates
+
+add-new-dim-test-type:
+ifndef NEW_TEST_TYPE
+	$(error No value provided for NEW_TEST_TYPE)
+endif
+
+	@echo "Creating files for new dim check type: $(NEW_TEST_TYPE)	"
+	@cp $(DIM_CHECKS_SQL_FOLDER)/template.sql.jinja $(DIM_CHECKS_SQL_FOLDER)/$(NEW_TEST_TYPE).sql.jinja
+	@echo Created new sql template: $(DIM_CHECKS_SQL_FOLDER)/$(NEW_TEST_TYPE).sql
+
+	@cp $(DIM_CHECKS_FOLDER)/template.py $(DIM_CHECKS_FOLDER)/$(NEW_TEST_TYPE).py
+	@echo Created new python module: $(DIM_CHECKS_FOLDER)/$(NEW_TEST_TYPE).py
+
 # help source: https://stackoverflow.com/a/64996042
 .PHONY: helppush
 help:
 	@echo "Available commands:"
 	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-30s\033[0m %s\n", $$1, $$2}'
-
 
 run:
 	docker run -v /Users/alekhya/Downloads/data-monitoring-dev-4b8f7f96a12e.json:/test_service_account.json \

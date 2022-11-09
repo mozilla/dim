@@ -5,5 +5,12 @@ modules = glob.glob(join(dirname(__file__), "*.py"))
 __all__ = [
     basename(f)[:-3]
     for f in modules
-    if (isfile(f) and not (f.endswith("__init__.py") or f.endswith("base.py")))
+    if (
+        isfile(f)
+        and not (
+            f.endswith("__init__.py")
+            or f.endswith("base.py")
+            or f.endswith("template.py")
+        )
+    )
 ]
