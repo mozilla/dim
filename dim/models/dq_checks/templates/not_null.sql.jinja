@@ -19,5 +19,5 @@ SELECT
     CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
     TO_JSON_STRING(CTE) AS additional_information,
     '{{ params.run_id }}' AS run_id,
-    IF({% for column in params.columns %}{{ column }}_null_count{{ "" if loop.last else " + " }}{% endfor %} {{ params.condition }}, False, True) AS passed,
+    IF({% for column in params.columns %}{{ column }}_null_count{{ "" if loop.last else " + " }}{% endfor %} > 0, False, True) AS passed,
 FROM CTE
