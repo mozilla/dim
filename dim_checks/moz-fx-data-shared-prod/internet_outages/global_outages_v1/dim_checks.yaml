@@ -1,0 +1,40 @@
+dim_config:
+  owner:
+    email: kignasiak@mozilla.com
+    slack: kik
+  alerts_enabled:
+    enabled: true
+    notify:
+      channels:
+        - dim_test_run
+  tier: tier_1
+  dim_tests:
+    - type: table_row_count
+      params:
+        condition: ">= 1000"
+    - type: not_null
+      params:
+        columns:
+          - datetime
+          - city
+          - country
+          - proportion_undefined
+          - proportion_timeout
+          - proportion_abort
+          - proportion_unreachable
+          - proportion_terminated
+          - proportion_channel_open
+          - avg_dns_success_time
+          - missing_dns_success
+          - avg_dns_failure_time
+          - missing_dns_failure
+          - count_dns_failure
+          - ssl_error_prop
+          - avg_tls_handshake_time
+    - type: column_length
+      params:
+        columns:
+          - country
+        condition: "= 2"
+
+    # TODO: add a check for uniqueness across datetime, city, country column combination
