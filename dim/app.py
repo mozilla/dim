@@ -5,6 +5,7 @@ from textwrap import dedent
 from uuid import uuid4
 
 import attr
+import jinja2
 from tabulate import tabulate
 
 from dim.bigquery_client import BigQueryClient
@@ -140,7 +141,21 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                 "partition": date,
                 "run_id": run_uuid,
             }
+
+            if user_sql := query_params.get("sql"):
+                templated_fields = {
+                    "project_id": project_id,
+                    "dataset": dataset,
+                    "table": table,
+                    "partition": date,
+                }
+
+                user_sql_template = jinja2.Environment().from_string(user_sql)
+                rendered_user_sql = user_sql_template.render(templated_fields)
+                query_params["sql"] = dedent(rendered_user_sql)
+
             _, test_sql = dim_check.generate_test_sql(query_params)
+
             dim_check.execute_test_sql(
                 sql=test_sql.replace(
                     "'[[dim_check_sql]]'",
