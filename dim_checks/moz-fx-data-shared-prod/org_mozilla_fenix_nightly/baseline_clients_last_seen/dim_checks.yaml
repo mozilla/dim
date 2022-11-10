@@ -1,0 +1,105 @@
+dim_config:
+  owner:
+    email: kignasiak@mozilla.com
+    slack: kik
+  alerts_enabled:
+    enabled: true
+    notify:
+      channels:
+        - dim_test_run
+  tier: tier_1
+  dim_tests:
+    - type: table_row_count
+      params:
+        condition: ">= 1000"
+    - type: not_null
+      params:
+        columns:
+          - submission_date
+          - first_run_date
+          - client_id
+          - sample_id
+          - days_seen_bits
+          - days_created_profile_bits
+          - days_seen_session_start_bits
+          - days_seen_session_end_bits
+          - durations
+          - normalized_channel
+          - normalized_app_name
+          - normalized_os
+          - normalized_os_version
+          - android_sdk_version
+          - locale
+          - country
+          - city
+          - app_build
+          - app_channel
+          - app_display_version
+          - architecture
+          - device_manufacturer
+          - device_model
+          - telemetry_sdk_build
+          - first_seen_date
+          - is_new_profile
+          - isp
+    - type: uniquness
+      params:
+        columns:
+          - client_id
+    - type: column_length
+      params:
+        columns:
+          - country
+        condition: "= 2"
+    - type: value_in_set
+      params:
+        columns:
+          - normalized_channel
+        expected_values:
+          - nightly
+          - aurora
+          - release
+          - Other
+          - beta
+          - esr
+    - type: value_in_set
+      params:
+        columns:
+          - normalized_app_name
+        expected_values:
+          - Fenix
+          - "Fenix BrowserStack"
+          - "Firefox iOS"
+          - "Firefox iOS BrowserStack"
+          - "Firefox Desktop"
+          - "Focus iOS"
+          - "Focus Android"
+          - "Focus Android Glean"
+          - "Focus Android Glean BrowserStack"
+    - type: value_in_set
+      params:
+        columns:
+          - normalized_os
+        expected_values:
+          - iOS
+          - Android
+          - Linux
+          - Linux_CXL
+          - Darwin
+          - Windows_95
+          - Windows_98
+          - Windows_NT
+          - OpenBSD
+          - SunOS
+          - HubertOS
+    - type: value_in_set
+      params:
+        columns:
+          - architecture
+        expected_values:
+          - arm64-v8a
+          - armeabi-v7a
+          - x86_64
+          - x86
+    # TODO: add check that locale is following xx-XX format
+    # TODO: add a check that telemetry_sdk_build is following x.x.x format
