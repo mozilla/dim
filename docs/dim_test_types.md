@@ -105,6 +105,13 @@ params:
 - `sql` - Custom provided SQL which will be used to generate results.
 - `condition` - How should we determine if the test is successful.
 
+These template fields can be embedded inside the user provided `sql` param field which will be replaced with values at runtime:
+
+- `{{ project_id }}` - project id of the table corresponding to the `dim_checks.yaml`.
+- `{{ dataset }}` - dataset of the table corresponding to the `dim_checks.yaml`.
+- `{{ table }}` - table of the table corresponding to the `dim_checks.yaml`.
+- `{{ partition }}` - date partition for which the check is executed.
+
 Example:
 
 ```yaml
@@ -112,7 +119,7 @@ Example:
   params:
     sql: |
       SELECT COUNT(*) AS total_count
-      FROM `data-monitoring-dev.monitoring_derived.muted_alerts_v1`
-      WHERE project_id = 'data_monitoring_dev' AND DATE(date_partition) = '2020-01-13'
+      FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+      WHERE project_id = '{{ project_id }}' AND DATE(date_partition) = '{{ partition }}'
     condition: total_count > 3000
 ```

@@ -33,3 +33,10 @@ dim_config:
         expected_values:
           - data-monitoring-dev
           - moz-fx-data-shared-prod
+    - type: custom_sql_metric
+      params:
+        sql: |
+          SELECT COUNT(*) AS count
+          FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+          WHERE project_id = "data-monitoring-dev"
+        condition: "count = 0"
