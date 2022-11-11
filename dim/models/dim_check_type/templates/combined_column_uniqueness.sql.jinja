@@ -1,0 +1,25 @@
+WITH CTE AS (
+    SELECT
+        COUNT(*) AS row_count,
+        COUNT(DISTINCT CONCAT({% for column in params.columns %}{{ column }}{{ ', ' if not loop.last else '' }}{% endfor %})) AS combination_row_count
+    FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+    WHERE DATE({{ partition_field }}) = DATE('{{ params.partition }}')
+)
+
+SELECT
+    '{{ project_id }}' AS project_id,
+    '{{ dataset }}' AS dataset,
+    '{{ table }}' AS table,
+    '{{ tier }}' AS tier,
+    DATE('{{ params.partition }}') AS date_partition,
+    '{{ dim_check_type }}' AS dim_check_type,
+    IF(row_count = combination_row_count, True, False) AS passed,
+    '{{ params.owner }}' AS owner,
+    TO_JSON_STRING(CTE) AS query_results,
+    TO_JSON_STRING("{'condition': '{{ params.condition }}', 'expected_values': '{{ params.expected_values }}', 'columns': '{{ params.columns }}") AS dim_check_context,
+    CAST('{{ params.alert_enabled }}' AS BOOL) AS alert_enabled,
+    CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
+    '{{ params.run_id }}' AS run_id,
+    CURRENT_DATETIME() AS actual_run_date,
+    '[[dim_check_sql]]' AS dim_check_sql,
+FROM CTE
