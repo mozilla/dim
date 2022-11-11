@@ -149,10 +149,10 @@ def format_failed_check_results(results):
 
 
 def bytes_processed_to_usd_estimate(bytes_processed: int):
-    cost_estimate = 5
-    tb_processed = bytes_processed / 1024 / 1024 / 1024 / 124
+    tb_cost_estimate = 5
+    tb_processed_estimate = bytes_processed / (1024*1024*1024) / 1000
 
-    return tb_processed * cost_estimate
+    return tb_processed_estimate * tb_cost_estimate
 
 
 def run_check(project_id: str, dataset: str, table: str, date: datetime):
@@ -243,6 +243,7 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                 {
                     **table_params,
                     "date_partition": date_partition,
+                    "dim_check_type": test_type,
                     "run_id": run_uuid,
                     "total_bytes_billed": processing_info[
                         "total_bytes_billed"
