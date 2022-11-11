@@ -42,6 +42,7 @@ class DimCheckParams:
     """ """
 
     condition: Optional[str] = attr.ib(None)
+    regex: Optional[str] = attr.ib(None)
     sql: Optional[str] = attr.ib(None)
     expected_values: Optional[List[str]] = attr.ib(None)
     columns: Optional[List[str]] = attr.ib(None)

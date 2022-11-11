@@ -8,6 +8,7 @@ dim_config:
       channels:
         - dim_test_run
   tier: tier_1
+  partition_field: submission_date
   dim_tests:
     - type: table_row_count
       params:
@@ -101,5 +102,13 @@ dim_config:
           - armeabi-v7a
           - x86_64
           - x86
-    # TODO: add check that locale is following xx-XX format
-    # TODO: add a check that telemetry_sdk_build is following x.x.x format
+    - type: matches_regex
+      params:
+        columns:
+          - locale
+        regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB
+    - type: matches_regex
+      params:
+        columns:
+          - telemetry_sdk_build
+        regex: ^\d+\.\d+\.\d+$  # example: 1.4.5

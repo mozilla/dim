@@ -20,6 +20,7 @@ DIM_CHECK_CLASS_MAPPING = {
         combined_column_uniqueness, "CombinedColumnUniqueness"  # noqa: F405
     ),
     "value_in_set": getattr(value_in_set, "ValueInSet"),  # noqa: F405
+    "matches_regex": getattr(matches_regex, "MatchesRegex"),  # noqa: F405
     "compare_row_count_to_table": getattr(
         compare_row_count_to_table, "CompareRowCountToTable"  # noqa: F405
     ),
