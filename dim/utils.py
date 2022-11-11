@@ -135,7 +135,7 @@ def mute_alerts_for_date(
 
     if not result:
         logging.info(
-            "Alerting for %s:%s.%s for partition: %s has been muted."
+            "Alerts for %s:%s.%s for partition: %s have been muted."
             % (project_id, dataset, table, date_partition)
         )
 
