@@ -45,3 +45,10 @@ dim_config:
           FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
           WHERE project_id = "data-monitoring-dev"
         condition: "count = 0"
+    - type: combined_column_uniqueness
+      params:
+        columns:
+          - project_id
+          - dataset
+          - table
+          - date_partition

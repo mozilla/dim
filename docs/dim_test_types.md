@@ -140,3 +140,22 @@ Example:
         table: moz-fx-data-shared-prod.internet_outages.global_outages_v1
         partition_field: datetime
 ```
+
+## combined_column_uniqueness
+
+Checks if a column combination is unique.
+
+params:
+- `columns` - columns which should provide a unique combination.
+
+Example:
+
+```yaml
+- type: combined_column_uniqueness
+  params:
+    columns:
+      - project_id
+      - dataset
+      - table
+      - date_partition
+```
