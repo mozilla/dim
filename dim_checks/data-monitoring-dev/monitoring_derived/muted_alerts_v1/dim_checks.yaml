@@ -8,6 +8,7 @@ dim_config:
       channels:
         - data-monitoring-mvp
   tier: tier_3
+  partition_field: date_partition
   dim_tests:
     - type: table_row_count
       params:

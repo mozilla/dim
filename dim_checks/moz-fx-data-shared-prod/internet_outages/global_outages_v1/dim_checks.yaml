@@ -2,12 +2,14 @@ dim_config:
   owner:
     email: kignasiak@mozilla.com
     slack: kik
-  alerts_enabled:
+  slack_alerts:
     enabled: true
     notify:
       channels:
-        - dim_test_run
+        # - dim_test_run
+        - data-monitoring-mvp
   tier: tier_1
+  partition_field: datetime
   dim_tests:
     - type: table_row_count
       params:

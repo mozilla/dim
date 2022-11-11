@@ -11,7 +11,7 @@
     ├── slack_alerts [optional] - slack alerting options, if not provided no alerts will be sent out.
     │   ├── enabled [required] - true or false, used to enable or disable slack alerts.
     │   └── notify [required]
-    │       └── channels [required] - a list of slack channels to notify about any failed tests.
+    │       └── channels [required] - a list of slack channels to notify about any failed tests. *!Please make sure `Overwatch` bot is in the alerting channel!*
     ├── tier [required] - Demonstrates how critical the table is.
     └── dim_tests [required] - a list of dim tests to run on the corresponding table.
         ├── type [required] - dim test type, must be defined inside `dim/models/dim_check_type/`

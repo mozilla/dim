@@ -148,6 +148,13 @@ def format_failed_check_results(results):
     return formatted_results
 
 
+def bytes_processed_to_usd_estimate(bytes_processed: int):
+    cost_estimate = 5
+    tb_processed = bytes_processed / 1024 / 1024 / 1024 / 124
+
+    return tb_processed * cost_estimate
+
+
 def run_check(project_id: str, dataset: str, table: str, date: datetime):
     run_uuid = str(uuid4())
 
@@ -175,6 +182,9 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
         dim_config = DimConfig.from_dict(
             read_config(config_path=config_path)["dim_config"]
         )
+
+        tier = dim_config.tier
+        partition_field = dim_config.partition_field
 
         alert_muted = is_alert_muted(*table_param_values, date_partition)
         slack_alert_settings = dim_config.slack_alerts
@@ -211,7 +221,13 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                 rendered_user_sql = user_sql_template.render(templated_fields)
                 query_params["sql"] = dedent(rendered_user_sql)
 
-            _, test_sql = dim_check.generate_test_sql(query_params)
+            _, test_sql = dim_check.generate_test_sql(
+                params=query_params,
+                extras={
+                    "tier": tier,
+                    "partition_field": partition_field,
+                },
+            )
 
             _, processing_info = dim_check.execute_test_sql(
                 sql=test_sql.replace(
@@ -234,26 +250,8 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                     "total_bytes_processed": processing_info[
                         "total_bytes_processed"
                     ],
-                    "usd_cost_estimate": round(
-                        (
-                            (
-                                (
-                                    (
-                                        (
-                                            processing_info[
-                                                "total_bytes_processed"
-                                            ]
-                                            / 1024
-                                        )
-                                        / 1024
-                                    )
-                                    / 1024
-                                )
-                                / 1024
-                            )
-                            * 5
-                        ),
-                        4,
+                    "usd_cost_estimate": bytes_processed_to_usd_estimate(
+                        processing_info["total_bytes_processed"]
                     ),
                 }
             )
