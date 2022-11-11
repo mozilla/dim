@@ -150,7 +150,7 @@ def format_failed_check_results(results):
 
 def bytes_processed_to_usd_estimate(bytes_processed: int):
     tb_cost_estimate = 5
-    tb_processed_estimate = bytes_processed / (1024*1024*1024) / 1000
+    tb_processed_estimate = bytes_processed / (1024 * 1024 * 1024) / 1000
 
     return tb_processed_estimate * tb_cost_estimate
 

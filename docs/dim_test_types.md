@@ -123,3 +123,20 @@ Example:
       WHERE project_id = '{{ project_id }}' AND DATE(date_partition) = '{{ partition }}'
     condition: total_count > 3000
 ```
+
+## compare_row_count_to_table
+
+Compares if the table's row count is the same as another table's row count. The test fails if the row counts are different.
+
+params:
+- `table` - Table to check the row count against (must be fully qualified table name: `project_id.dataset.table`).
+- `partition_field` - field used as a partition field in the other table.
+
+Example:
+
+```yaml
+- type: compare_row_count_to_table
+      params:
+        table: moz-fx-data-shared-prod.internet_outages.global_outages_v1
+        partition_field: datetime
+```
