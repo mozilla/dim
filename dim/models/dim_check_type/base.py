@@ -1,11 +1,12 @@
-from pathlib import Path
+# from pathlib import Path
 from typing import Any, Dict
 
 from jinja2 import Environment, FileSystemLoader
 
 import dim.const
 from dim.bigquery_client import BigQueryClient
-from dim.utils import check_directory_exists, create_directory, sql_to_file
+
+# from dim.utils import check_directory_exists, create_directory, sql_to_file
 
 
 class Base:
@@ -44,23 +45,23 @@ class Base:
         return sql
 
     def generate_test_sql(self, params):
-        generated_sql_folder = Path(
-            dim.const.GENERATED_SQL_FOLDER
-            + "/"
-            + self.project_id
-            + "/"
-            + self.dataset
-            + "/"
-            + self.table
-        )
+        # generated_sql_folder = Path(
+        #     dim.const.GENERATED_SQL_FOLDER
+        #     + "/"
+        #     + self.project_id
+        #     + "/"
+        #     + self.dataset
+        #     + "/"
+        #     + self.table
+        # )
 
-        check_directory_exists(generated_sql_folder) or create_directory(
-            generated_sql_folder
-        )
-
-        target_file = generated_sql_folder.joinpath(
-            f"{self.dim_check_type}.sql"
-        )
+        # check_directory_exists(generated_sql_folder) or create_directory(
+        #     generated_sql_folder
+        # )
+        #
+        # target_file = generated_sql_folder.joinpath(
+        #     f"{self.dim_check_type}.sql"
+        # )
         generated_sql = self.render_sql(
             {
                 "project_id": self.project_id,
@@ -71,13 +72,13 @@ class Base:
             },
         )
 
-        sql_to_file(target_file=target_file, sql=generated_sql)
+        # sql_to_file(target_file=target_file, sql=generated_sql)
 
-        return target_file, generated_sql
+        return None, generated_sql
 
     def execute_test_sql(self, sql):
         return self.bigquery.execute(
             sql,
             dataset=dim.const.DESTINATION_DATASET,
-            destination_table=dim.const.DESTINATION_TABLE,
+            destination_table=dim.const.RUN_HISTORY_TABLE_NAME,
         )
