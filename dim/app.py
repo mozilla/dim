@@ -36,7 +36,7 @@ def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
         SELECT
             CONCAT(project_id, '.', dataset, '.', table) AS dataset,
             dim_check_type,
-            actual_run_date,
+            FORMAT_DATE("%Y-%m-%d %H:%M:%S", actual_run_date) AS actual_run_date,  # noqa: E501
             date_partition,
             owner,
             query_results,
@@ -49,7 +49,9 @@ def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
             AND table = '{table}'
             AND run_id = '{run_uuid}'
             AND NOT passed
-        """
+        """.replace(
+            "  # noqa: E501", ""
+        )
     )
 
     bigquery = BigQueryClient(
@@ -67,8 +69,6 @@ def insert_dim_processing_info(insert_data):
     )
 
     processing_table = get_dim_processing_info_table()
-    print(processing_table)
-    print(str(processing_table))
 
     result = bigquery.client.insert_rows(processing_table, insert_data)
     run_id = insert_data[0]["run_id"]
@@ -93,41 +93,56 @@ def format_failed_check_results(results):
     run_id = results.iloc[0]["run_id"]
     owner = results.iloc[0]["owner"]
 
-    results.drop(
-        ["dataset", "date_partition", "run_id", "owner"], axis=1, inplace=True
+    reduced_results = results.drop(
+        ["dataset", "date_partition", "run_id", "owner"], axis=1, inplace=False
     )
+
+    # need to limit how much text is shown
+    # by slack otherwise message becomes unreadable.
+    record_value_char_limit = 100
+
+    truncated_record_values = [
+        {
+            key: f"{value[:record_value_char_limit - 3]}..."
+            if type(value) == str and len(value) > record_value_char_limit
+            else value
+            for key, value in record.items()
+        }
+        for record in reduced_results.to_dict("records")
+    ]
 
     fail_details_tbl = tabulate(
-        results.to_dict("records"),
+        truncated_record_values,
         headers="keys",
         tablefmt="psql",
-        stralign="center",
+        stralign="left",
+        maxcolwidths=100,
     )
 
-    formatted_results = dedent(
-        f"""
-        :alert: Dim checks failed:
-        Table:     `{dataset}`
-        Partition: `{date_partition}`
-        Run id:    `{run_id}`
-        Owner:     `{owner}`
-
-        {fail_details_tbl}
-
-        > For full context you can use the following query:
-        ```
-        SELECT * FROM `{RUN_HISTORY_TABLE}`
-        WHERE
-            run_id = "{run_id}"
-            AND date_partition = DATE("{date_partition}")
-        ```
-        > And for full info around processing:
-        ```
-        SELECT * FROM `{PROCESSING_INFO_TABLE}`
-        WHERE run_id = "{run_id}"
-        AND date_partition = DATE("{date_partition}"
-        ```
-        """
+    formatted_results = (
+        dedent(
+            f"""
+            :alert: Dim checks failed:
+            table: `{dataset}` | partition: `{date_partition}` | run_id: `{run_id}` | owner: `{owner}`  # noqa: E501
+            """
+        )
+        + fail_details_tbl
+        + dedent(
+            f"""
+            > Full context and the query used can be found using this query:
+            ```
+            SELECT * FROM `{RUN_HISTORY_TABLE}`
+            WHERE run_id = "{run_id}"
+                AND date_partition = DATE("{date_partition}")
+            ```
+            > Billing and processing information can be accessed using:
+            ```
+            SELECT * FROM `{PROCESSING_INFO_TABLE}`
+            WHERE run_id = "{run_id}"
+                AND date_partition = DATE("{date_partition}")
+            ```
+            """
+        )
     )
 
     return formatted_results
