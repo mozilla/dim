@@ -72,6 +72,7 @@ class DimConfig:
     owner: Owner = attr.ib()
     tier: str = attr.ib()
     dim_tests: List[DimCheck]
+    partition_field: str = attr.ib(default=None)
     slack_alerts: Optional[SlackAlertConfig] = attr.ib(
         default=SlackAlertConfig(
             enabled=False,

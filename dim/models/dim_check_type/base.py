@@ -31,7 +31,9 @@ class Base:
             dataset=dim.const.DESTINATION_DATASET,
         )
 
-    def render_sql(self, render_kwargs: Dict[str, Any]):
+    def render_sql(
+        self, params: Dict[str, Any], extras: Dict[Any, Any]
+    ) -> str:
         """Render and return the SQL from a template."""
 
         templateLoader = FileSystemLoader(dim.const.TEMPLATES_LOC)
@@ -40,11 +42,13 @@ class Base:
             self.dim_check_type + dim.const.TEMPLATE_FILE_EXTENSION
         )
 
-        sql = template.render(**render_kwargs)
+        sql = template.render({**params, **extras})
 
         return sql
 
-    def generate_test_sql(self, params):
+    def generate_test_sql(
+        self, *, params: Dict[Any, Any], extras: Dict[Any, Any]
+    ):
         # generated_sql_folder = Path(
         #     dim.const.GENERATED_SQL_FOLDER
         #     + "/"
@@ -63,13 +67,14 @@ class Base:
         #     f"{self.dim_check_type}.sql"
         # )
         generated_sql = self.render_sql(
-            {
+            params={
                 "project_id": self.project_id,
                 "dataset": self.dataset,
                 "table": self.table,
                 "dim_check_type": self.dim_check_type,
                 "params": params,
             },
+            extras=extras,
         )
 
         # sql_to_file(target_file=target_file, sql=generated_sql)
