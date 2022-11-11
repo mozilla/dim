@@ -30,14 +30,23 @@ SOURCE_PROJECT = "data-monitoring-dev"
 
 DESTINATION_PROJECT = "data-monitoring-dev"
 DESTINATION_DATASET = "monitoring_derived"
-DESTINATION_TABLE = "dim_run_history_v1"
 
-VALID_TIERS = ("tier_1", "tier_2", "tier_3")
+RUN_HISTORY_TABLE_NAME = "dim_run_history_v1"
+RUN_HISTORY_TABLE = (
+    f"{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{RUN_HISTORY_TABLE_NAME}"
+)
+
+PROCESSING_INFO_TABLE_NAME = "dim_run_processing_info_v1"
+PROCESSING_INFO_TABLE = (
+    f"{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{PROCESSING_INFO_TABLE_NAME}"
+)
 
 MUTED_ALERTS_TABLE_NAME = "muted_alerts_v1"
 MUTED_ALERTS_TABLE = (
     f"{DESTINATION_PROJECT}.{DESTINATION_DATASET}.{MUTED_ALERTS_TABLE_NAME}"
 )
+
+VALID_TIERS = ("tier_1", "tier_2", "tier_3")
 
 TEMPLATES_LOC = "dim/models/dim_check_type/templates"
 TEMPLATE_FILE_EXTENSION = ".sql.jinja"
