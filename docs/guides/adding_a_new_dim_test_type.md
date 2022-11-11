@@ -2,7 +2,7 @@
 
 > When inventing a test name please specify it using the `snake_case` naming convention.
 
-1. Run `make add-new-dim-test-type NEW_TEST_TYPE=[dim_test_type_name]` (`[dim_test_type_name]` needs to be replaced by what you want to call the test). This will create a couple of files:
+1. Run `make new-dim-test-type TEST_TYPE=[dim_test_type_name]` (`[dim_test_type_name]` needs to be replaced by what you want to call the test). This will create a couple of files:
     - `dim/models/dim_check_type/[dim_test_type_name].py`
     - `dim/models/dim_check_type/templates/[dim_test_type_name].sql.jinja`
 1. Inside `dim/models/dim_check_type/[dim_test_type_name].py` Replace class name `REPLACE_ME` with `CamelCase` version of `[dim_test_type_name]` used with the first command and set the value of `DQ_CHECK_NAME` to be the same as `[dim_test_type_name]`.

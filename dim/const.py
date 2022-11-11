@@ -17,6 +17,9 @@ DIM_CHECK_CLASS_MAPPING = {
     "table_row_count": getattr(table_row_count, "TableRowCount"),  # noqa: F405
     "column_length": getattr(column_length, "ColumnLength"),  # noqa: F405
     "value_in_set": getattr(value_in_set, "ValueInSet"),  # noqa: F405
+    "compare_row_count_to_table": getattr(
+        compare_row_count_to_table, "CompareRowCountToTable"  # noqa: F405
+    ),
     "column_sum_not_zero": getattr(
         column_sum_not_zero, "ColumnSumNotZero"  # noqa: F405
     ),
