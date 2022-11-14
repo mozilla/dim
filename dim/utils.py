@@ -29,9 +29,6 @@ def get_dim_processing_info_table():
         SchemaField(name="run_id", field_type="STRING"),
         SchemaField(name="total_bytes_billed", field_type="INTEGER"),
         SchemaField(name="total_bytes_processed", field_type="INTEGER"),
-        SchemaField(
-            name="usd_cost_estimate", field_type="FLOAT"
-        ),  # TODO: should this be numeric field instead?  # noqa: E501
     ]
 
     table = Table(

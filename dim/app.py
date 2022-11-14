@@ -148,13 +148,6 @@ def format_failed_check_results(results):
     return formatted_results
 
 
-def bytes_processed_to_usd_estimate(bytes_processed: int):
-    tb_cost_estimate = 5
-    tb_processed_estimate = bytes_processed / (1024 * 1024 * 1024) / 1000
-
-    return tb_processed_estimate * tb_cost_estimate
-
-
 def run_check(project_id: str, dataset: str, table: str, date: datetime):
     run_uuid = str(uuid4())
 
@@ -251,9 +244,6 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
                     "total_bytes_processed": processing_info[
                         "total_bytes_processed"
                     ],
-                    "usd_cost_estimate": bytes_processed_to_usd_estimate(
-                        processing_info["total_bytes_processed"]
-                    ),
                 }
             )
 
