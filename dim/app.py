@@ -145,7 +145,7 @@ def format_failed_check_results(results):
         )
     )
 
-    return formatted_results
+    return formatted_results.replace("  # noqa: E501", "")
 
 
 def run_check(project_id: str, dataset: str, table: str, date: datetime):
