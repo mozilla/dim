@@ -159,3 +159,24 @@ Example:
       - table
       - date_partition
 ```
+
+## matches_regex
+
+Checks if the columns conform to the provided regex rules.
+
+params:
+- `columns` - columns which will be compared against the regex.
+- `regex` - regex which will be used for value structure validation.
+
+
+Example:
+
+```yaml
+- type: matches_regex
+  params:
+    columns:
+      - locale
+    regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB
+```
+
+_Note_ Due to some issues, as a workaround the regex stored inside `dim_check_context` (`dim_run_history_v1` table) contains double escape characters. Actual regex used only one, so the example above would looks like this in the table: `^\\w{2}-\\w{2}$` instead of `^\w{2}-\w{2}$`.

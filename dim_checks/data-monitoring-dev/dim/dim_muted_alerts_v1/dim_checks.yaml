@@ -52,3 +52,8 @@ dim_config:
           - dataset
           - table
           - date_partition
+    - type: matches_regex
+      params:
+        columns:
+          - locale
+        regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB
