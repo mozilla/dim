@@ -8,6 +8,7 @@ dim_config:
       channels:
         - dim_test_run
   tier: tier_1
+  partition_field: submission_date
   dim_tests:
     - type: table_row_count
       params:
@@ -16,14 +17,17 @@ dim_config:
       params:
         columns:
           - submission_date
+          - first_seen_date
+          - first_seen_year
           - app_name
           - app_version
           - channel
           - segment
           - attributed
-          - first_seen_year
           - os
           - os_version
+          - os_version_major
+          - os_version_minor
           - dau
           - wau
           - mau
@@ -33,6 +37,16 @@ dim_config:
         columns:
           - country
         condition: "= 2"
+    - type: column_length
+      params:
+        columns:
+          - country
+        condition: "= 2"
+    - type: matches_regex
+      params:
+        columns:
+          - country
+        regex: ^[A-Z]{2}$  # example: GB
     - type: value_in_set
       params:
         columns:
@@ -59,13 +73,16 @@ dim_config:
         columns:
           - app_name
         expected_values:
+          - Fenix
+          - "Fenix BrowserStack"
           - "Firefox iOS"
           - "Firefox iOS BrowserStack"
           - "Firefox Desktop"
-          - "Fenix BrowserStack"
-          - Fenix
           - "Focus iOS"
           - "Focus Android"
+          - "Focus iOS BrowserStack"
+          - "Focus Android Glean"
+          - "Focus Android Glean BrowserStack"
     - type: value_in_set
       params:
         columns:
@@ -82,3 +99,29 @@ dim_config:
           - OpenBSD
           - SunOS
           - HubertOS
+    - type: matches_regex
+      params:
+        columns:
+          - first_seen_year
+        regex: ^\d{4}$  # example: 2020
+    - type: combined_column_uniqueness
+      params:
+        columns:
+          - submission_date
+          - segment
+          - app_version
+          - attribution_medium
+          - attribution_source
+          - country
+          - city
+          - distribution_id
+          - is_default_browser
+          - app_name
+          - channel
+          - os
+          - os_version
+          - os_version_major
+          - os_version_minor
+          - first_seen_year
+          - attributed
+          - language_name
