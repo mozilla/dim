@@ -57,8 +57,24 @@ def cli():
     type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
 )  # rename date to something shorter,
 # required until we add support for full tables
-def run(project_id: str, dataset: str, table: str, date: str):
-    run_check(project_id, dataset, table, date)
+@click.option(
+    "--fail_process_on_failure",
+    is_flag=True,
+)
+def run(
+    project_id: str,
+    dataset: str,
+    table: str,
+    date: str,
+    fail_process_on_failure: bool,
+):
+    run_check(
+        project_id,
+        dataset,
+        table,
+        date,
+        fail_process_on_failure=fail_process_on_failure,
+    )
 
 
 @cli.command()
@@ -79,7 +95,11 @@ def run(project_id: str, dataset: str, table: str, date: str):
     type=click.DateTime(formats=[INPUT_DATE_FORMAT]),
 )
 def backfill(
-    project_id: str, dataset: str, table: str, start_date: str, end_date: str
+    project_id: str,
+    dataset: str,
+    table: str,
+    start_date: str,
+    end_date: str,
 ):
     """
     Cmd to trigger tests execution for the specified table
