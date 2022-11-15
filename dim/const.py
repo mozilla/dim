@@ -21,6 +21,9 @@ DIM_CHECK_CLASS_MAPPING = {
     ),
     "value_in_set": getattr(value_in_set, "ValueInSet"),  # noqa: F405
     "matches_regex": getattr(matches_regex, "MatchesRegex"),  # noqa: F405
+    "numeric_values_matches": getattr(
+        numeric_values_matches, "NumericValueMatches"  # noqa: F405
+    ),
     "compare_row_count_to_table": getattr(
         compare_row_count_to_table, "CompareRowCountToTable"  # noqa: F405
     ),

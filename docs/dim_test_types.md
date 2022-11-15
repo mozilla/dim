@@ -180,3 +180,21 @@ Example:
 ```
 
 _Note_ Due to some issues, as a workaround the regex stored inside `dim_check_context` (`dim_run_history_v1` table) contains double escape characters. Actual regex used only one, so the example above would looks like this in the table: `^\\w{2}-\\w{2}$` instead of `^\w{2}-\w{2}$`.
+
+## numeric_value_matches
+
+Checks that the numeric values are as expected. This could be used to check if the values are equal to, great, less than, or within a numeric range.
+
+params:
+- `columns` - columns which values will be compared against the condition.
+- `condition` - defines condition the values must meet in order for the test to pass.
+
+Example:
+
+```yaml
+- type: numeric_values_matches
+      params:
+        columns:
+          - year
+        condition: "> 2020"
+```
