@@ -89,11 +89,11 @@ def run_settings():
 
 @patch("dim.cli.run_check")
 @pytest.mark.parametrize(
-    "date,expected_exit_code,expected_exception",
+    "date,fail_process_on_failure,expected_exit_code,expected_exception",
     [
-        ("2022-01-01", 0, None),
-        ("2022/01/01", 2, SystemExit),
-        (None, 2, SystemExit),
+        ("2022-01-01", True, 0, None),
+        ("2022/01/01", False, 2, SystemExit),
+        (None, False, 2, SystemExit),
     ],
 )
 def test_run(
@@ -101,10 +101,12 @@ def test_run(
     runner,
     run_settings,
     date,
+    fail_process_on_failure,
     expected_exit_code,
     expected_exception,
 ):
     cmd_args = "--project_id={} --dataset={} --table={}".format(*run_settings)
+    cmd_args += " --fail_process_on_failure" if fail_process_on_failure else ""
     cmd_args += f" --date={date}" if date else ""
 
     result = runner.invoke(run, cmd_args.split(" "))
@@ -118,7 +120,9 @@ def test_run(
 
     if actual_exit_code == 0:
         run_patch.assert_called_once_with(
-            *run_settings, datetime.datetime(*map(int, date.split("-")))
+            *run_settings,
+            datetime.datetime(*map(int, date.split("-"))),
+            fail_process_on_failure=fail_process_on_failure,
         )
 
 

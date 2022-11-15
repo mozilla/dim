@@ -18,6 +18,7 @@ from dim.const import (
     PROCESSING_INFO_TABLE,
     RUN_HISTORY_TABLE,
 )
+from dim.error import DimChecksFailed
 from dim.models.dim_config import DimConfig
 from dim.slack import send_slack_alert
 from dim.utils import (
@@ -148,7 +149,13 @@ def format_failed_check_results(results):
     return formatted_results.replace("  # noqa: E501", "")
 
 
-def run_check(project_id: str, dataset: str, table: str, date: datetime):
+def run_check(
+    project_id: str,
+    dataset: str,
+    table: str,
+    date: datetime,
+    fail_process_on_failure: bool = False,
+):
     run_uuid = str(uuid4())
 
     date_partition = date.date()
@@ -168,6 +175,10 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
 
     config_paths = (
         CONFIG_ROOT_PATH + "/" + project_id + "/" + dataset + "/" + table
+    )
+
+    dim_checks_failed = (
+        False  # TODO: hack for now until the unecessary loop is removed.
     )
 
     # TODO: this loop is unecessary
@@ -262,8 +273,10 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
             *table_param_values, run_uuid
         )
 
+        dim_checks_failed = bool(failed_dim_checks.to_dict("records"))
+
         if (
-            failed_dim_checks.to_dict("records")
+            dim_checks_failed
             and slack_alert_settings.enabled
             and not alert_muted
         ):
@@ -289,3 +302,9 @@ def run_check(project_id: str, dataset: str, table: str, date: datetime):
         "Finished running data checks on %s:%s.%s for date_partition: %s (run_id: %s)"  # noqa: E501
         % (*table_param_values, date_partition, run_uuid)
     )
+
+    if dim_checks_failed and fail_process_on_failure:
+        raise DimChecksFailed(
+            "Some dim checks failed during the run. Please check run_id: %s inside dim_run_history table for more information."  # noqa: E501
+            % run_uuid
+        )
