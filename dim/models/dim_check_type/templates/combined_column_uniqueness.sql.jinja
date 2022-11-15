@@ -20,6 +20,6 @@ SELECT
     CAST('{{ params.alert_enabled }}' AS BOOL) AS alert_enabled,
     CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
     '{{ params.run_id }}' AS run_id,
-    CURRENT_DATETIME() AS actual_run_date,
+    TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), SECOND) AS actual_run_date,
     '[[dim_check_sql]]' AS dim_check_sql,
 FROM CTE
