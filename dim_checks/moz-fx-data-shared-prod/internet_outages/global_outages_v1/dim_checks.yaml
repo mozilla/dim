@@ -38,5 +38,9 @@ dim_config:
         columns:
           - country
         condition: "= 2"
-
-    # TODO: add a check for uniqueness across datetime, city, country column combination
+    - type: combined_column_uniqueness
+      params:
+        columns:
+          - datetime
+          - city
+          - country
