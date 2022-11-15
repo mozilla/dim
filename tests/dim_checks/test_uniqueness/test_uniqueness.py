@@ -58,7 +58,7 @@
 #             "uniqueness" AS dim_check_type,
 #             "akommasani@mozilla.com" AS dataset_owner,
 #             "" AS alerts_enabled,
-#             CURRENT_DATETIME() AS actual_run_date
+#             TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), SECOND) AS actual_run_date
 #         FROM CTE
 #         WHERE row_count >= 1"""
 #     )
