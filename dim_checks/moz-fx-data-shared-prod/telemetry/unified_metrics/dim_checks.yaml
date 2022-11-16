@@ -42,6 +42,11 @@ dim_config:
         columns:
           - country
         condition: "= 2"
+    - type: column_length
+      params:
+        columns:
+          - client_id
+        condition: "= 36"
     - type: value_in_set
       params:
         columns:
