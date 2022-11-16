@@ -75,6 +75,7 @@ dim_config:
           - "Firefox Desktop"
           - "Focus iOS"
           - "Focus Android"
+          - "Focus iOS BrowserStack"
           - "Focus Android Glean"
           - "Focus Android Glean BrowserStack"
     - type: value_in_set
