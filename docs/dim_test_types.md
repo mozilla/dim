@@ -105,6 +105,13 @@ params:
 - `sql` - Custom provided SQL which will be used to generate results.
 - `condition` - How should we determine if the test is successful.
 
+These template fields can be embedded inside the user provided `sql` param field which will be replaced with values at runtime:
+
+- `{{ project_id }}` - project id of the table corresponding to the `dim_checks.yaml`.
+- `{{ dataset }}` - dataset of the table corresponding to the `dim_checks.yaml`.
+- `{{ table }}` - table of the table corresponding to the `dim_checks.yaml`.
+- `{{ partition }}` - date partition for which the check is executed.
+
 Example:
 
 ```yaml
@@ -112,7 +119,82 @@ Example:
   params:
     sql: |
       SELECT COUNT(*) AS total_count
-      FROM `data-monitoring-dev.monitoring_derived.muted_alerts_v1`
-      WHERE project_id = 'data_monitoring_dev' AND DATE(date_partition) = '2020-01-13'
+      FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+      WHERE project_id = '{{ project_id }}' AND DATE(date_partition) = '{{ partition }}'
     condition: total_count > 3000
+```
+
+## compare_row_count_to_table
+
+Compares if the table's row count is the same as another table's row count. The test fails if the row counts are different.
+
+params:
+- `table` - Table to check the row count against (must be fully qualified table name: `project_id.dataset.table`).
+- `partition_field` - field used as a partition field in the other table.
+
+Example:
+
+```yaml
+- type: compare_row_count_to_table
+      params:
+        table: moz-fx-data-shared-prod.internet_outages.global_outages_v1
+        partition_field: datetime
+```
+
+## combined_column_uniqueness
+
+Checks if a column combination is unique.
+
+params:
+- `columns` - columns which should provide a unique combination.
+
+Example:
+
+```yaml
+- type: combined_column_uniqueness
+  params:
+    columns:
+      - project_id
+      - dataset
+      - table
+      - date_partition
+```
+
+## matches_regex
+
+Checks if the columns conform to the provided regex rules.
+
+params:
+- `columns` - columns which will be compared against the regex.
+- `regex` - regex which will be used for value structure validation.
+
+
+Example:
+
+```yaml
+- type: matches_regex
+  params:
+    columns:
+      - locale
+    regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB
+```
+
+_Note_ Due to some issues, as a workaround the regex stored inside `dim_check_context` (`dim_run_history_v1` table) contains double escape characters. Actual regex used only one, so the example above would looks like this in the table: `^\\w{2}-\\w{2}$` instead of `^\w{2}-\w{2}$`.
+
+## numeric_value_matches
+
+Checks that the numeric values are as expected. This could be used to check if the values are equal to, great, less than, or within a numeric range.
+
+params:
+- `columns` - columns which values will be compared against the condition.
+- `condition` - defines condition the values must meet in order for the test to pass.
+
+Example:
+
+```yaml
+- type: numeric_values_matches
+      params:
+        columns:
+          - year
+        condition: "> 2020"
 ```

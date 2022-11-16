@@ -1,0 +1,59 @@
+dim_config:
+  owner:
+    email: kik@null.com
+    slack: kik
+  slack_alerts:
+    enabled: true
+    notify:
+      channels:
+        - data-monitoring-mvp
+  tier: tier_3
+  partition_field: date_partition
+  dim_tests:
+    - type: compare_row_count_to_table
+      params:
+        table: moz-fx-data-shared-prod.internet_outages.global_outages_v1
+        partition_field: datetime
+    - type: table_row_count
+      params:
+        condition: ">= 20"
+    - type: not_null
+      params:
+        columns:
+          - project_id
+          - dataset
+    - type: uniqueness
+      params:
+        columns:
+          - project_id
+    - type: column_length
+      params:
+        columns:
+          - project_id
+        condition: "= 2"
+    - type: value_in_set
+      params:
+        columns:
+          - project_id
+        expected_values:
+          - data-monitoring-dev
+          - moz-fx-data-shared-prod
+    - type: custom_sql_metric
+      params:
+        sql: |
+          SELECT COUNT(*) AS count
+          FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+          WHERE project_id = "data-monitoring-dev"
+        condition: "count = 0"
+    - type: combined_column_uniqueness
+      params:
+        columns:
+          - project_id
+          - dataset
+          - table
+          - date_partition
+    - type: matches_regex
+      params:
+        columns:
+          - locale
+        regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB

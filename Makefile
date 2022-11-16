@@ -97,17 +97,17 @@ make clean:  # Removes local env
 DIM_CHECKS_FOLDER := dim/models/dim_check_type
 DIM_CHECKS_SQL_FOLDER := $(DIM_CHECKS_FOLDER)/templates
 
-add-new-dim-test-type:
-ifndef NEW_TEST_TYPE
-	$(error No value provided for NEW_TEST_TYPE)
+new-dim-test-type:
+ifndef TEST_TYPE
+	$(error No value provided for TEST_TYPE)
 endif
 
-	@echo "Creating files for new dim check type: $(NEW_TEST_TYPE)	"
-	@cp $(DIM_CHECKS_SQL_FOLDER)/template.sql.jinja $(DIM_CHECKS_SQL_FOLDER)/$(NEW_TEST_TYPE).sql.jinja
-	@echo Created new sql template: $(DIM_CHECKS_SQL_FOLDER)/$(NEW_TEST_TYPE).sql
+	@echo "Creating files for new dim check type: $(TEST_TYPE)	"
+	@cp $(DIM_CHECKS_SQL_FOLDER)/template.sql.jinja $(DIM_CHECKS_SQL_FOLDER)/$(TEST_TYPE).sql.jinja
+	@echo Created new sql template: $(DIM_CHECKS_SQL_FOLDER)/$(TEST_TYPE).sql
 
-	@cp $(DIM_CHECKS_FOLDER)/template.py $(DIM_CHECKS_FOLDER)/$(NEW_TEST_TYPE).py
-	@echo Created new python module: $(DIM_CHECKS_FOLDER)/$(NEW_TEST_TYPE).py
+	@cp $(DIM_CHECKS_FOLDER)/template.py $(DIM_CHECKS_FOLDER)/$(TEST_TYPE).py
+	@echo Created new python module: $(DIM_CHECKS_FOLDER)/$(TEST_TYPE).py
 
 # help source: https://stackoverflow.com/a/64996042
 .PHONY: helppush

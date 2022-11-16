@@ -53,3 +53,13 @@ class DimConfigError(DimException):
 
     def __init__(self, message):
         super().__init__(message)
+
+
+class DimChecksFailed(DimException):
+    """
+    Exception raised when --fail_on_failure flag is set
+    and at least one check failed
+    """
+
+    def __init__(self, message):
+        super().__init__(message)

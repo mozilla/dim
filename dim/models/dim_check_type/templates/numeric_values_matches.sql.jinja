@@ -1,9 +1,9 @@
 WITH CTE AS (
     SELECT
-        {% for column in params.columns %}COUNTIF(NOT LENGTH({{ column }}) {{ params.condition }} ) AS {{ column }}_length_mismatch_count,{% endfor %}
+        {% for column in params.columns %}COUNTIF(NOT CAST({{ column }} AS INTEGER) {{ params.condition }}) AS {{ column }}_value_mismatch_count,
+        {% endfor %}
     FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
-    WHERE
-        DATE({{ partition_field }}) = DATE('{{ params.partition }}')
+    WHERE DATE({{ partition_field }}) = DATE('{{ params.partition }}')
 )
 
 SELECT
@@ -13,7 +13,7 @@ SELECT
     '{{ tier }}' AS tier,
     DATE('{{ params.partition }}') AS date_partition,
     '{{ dim_check_type }}' AS dim_check_type,
-    IF({% for column in params.columns %}{{ column }}_length_mismatch_count{{ "" if loop.last else " + " }}{% endfor %} = 0, True, False) AS passed,
+    IF({% for column in params.columns %}{{ column }}_value_mismatch_count{{ "" if loop.last else " + " }}{% endfor %} = 0, True, False) AS passed,
     '{{ params.owner }}' AS owner,
     TO_JSON_STRING(CTE) AS query_results,
     TO_JSON_STRING("{'condition': '{{ params.condition }}', 'columns': '{{ params.columns }}") AS dim_check_context,

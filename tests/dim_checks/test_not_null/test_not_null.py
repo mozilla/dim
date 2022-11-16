@@ -57,7 +57,7 @@
 #             'not_null" AS dim_check_type,
 #             '{"email": "akommasani@mozilla.com"}' AS dataset_owner,
 #             'true' AS alerts_enabled,
-#             CURRENT_DATETIME() AS actual_run_date
+#             TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), SECOND) AS actual_run_date
 #         FROM CTE"""
 #     )
 

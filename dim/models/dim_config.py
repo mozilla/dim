@@ -42,11 +42,14 @@ class DimCheckParams:
     """ """
 
     condition: Optional[str] = attr.ib(None)
+    regex: Optional[str] = attr.ib(None)
     sql: Optional[str] = attr.ib(None)
     expected_values: Optional[List[str]] = attr.ib(None)
     columns: Optional[List[str]] = attr.ib(None)
     partition: Optional[datetime] = attr.ib(None)
     enable_alerts_enabled: Optional[bool] = attr.ib(False)
+    table: Optional[str] = attr.ib(None)
+    partition_field: Optional[str] = attr.ib(None)
 
 
 @attr.s(auto_attribs=True)
@@ -72,6 +75,7 @@ class DimConfig:
     owner: Owner = attr.ib()
     tier: str = attr.ib()
     dim_tests: List[DimCheck]
+    partition_field: str = attr.ib(default=None)
     slack_alerts: Optional[SlackAlertConfig] = attr.ib(
         default=SlackAlertConfig(
             enabled=False,

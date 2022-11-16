@@ -1,6 +1,7 @@
 import logging
 import os
-from pathlib import Path
+
+# from pathlib import Path
 from textwrap import dedent
 from typing import Any, Dict, List
 
@@ -13,6 +14,38 @@ import dim.const
 from dim.bigquery_client import BigQueryClient
 
 
+def create_bq_table_if_not_exist(bq_client, table):
+    if not bq_client.bq_table_exists(table):
+        bq_client.create_table(table)
+
+
+def get_dim_processing_info_table():
+    schema = [
+        SchemaField(name="project_id", field_type="STRING"),
+        SchemaField(name="dataset", field_type="STRING"),
+        SchemaField(name="table", field_type="STRING"),
+        SchemaField(name="dim_check_type", field_type="STRING"),
+        SchemaField(name="date_partition", field_type="DATE"),
+        SchemaField(name="run_id", field_type="STRING"),
+        SchemaField(name="total_bytes_billed", field_type="INTEGER"),
+        SchemaField(name="total_bytes_processed", field_type="INTEGER"),
+    ]
+
+    table = Table(
+        dim.const.PROCESSING_INFO_TABLE,
+        schema=schema,
+    )
+
+    bigquery = BigQueryClient(
+        project_id=dim.const.DESTINATION_PROJECT,
+        dataset=dim.const.DESTINATION_DATASET,
+    )
+
+    create_bq_table_if_not_exist(bigquery, table)
+
+    return table
+
+
 def get_muted_alerts_table():
     schema = [
         SchemaField(name="project_id", field_type="STRING"),
@@ -21,17 +54,10 @@ def get_muted_alerts_table():
         SchemaField(name="date_partition", field_type="DATE"),
     ]
 
-    table = Table(
+    return Table(
         dim.const.MUTED_ALERTS_TABLE,
         schema=schema,
     )
-
-    return table
-
-
-def create_muted_alerts_table_if_not_exists(bq_client, table):
-    if not bq_client.bq_table_exists(table):
-        bq_client.create_table(table)
 
 
 def is_alert_muted(
@@ -60,7 +86,7 @@ def is_alert_muted(
 
     bq_table = get_muted_alerts_table()
 
-    create_muted_alerts_table_if_not_exists(bigquery, bq_table)
+    create_bq_table_if_not_exist(bigquery, bq_table)
 
     job = bigquery.fetch_results(sql)
     result_df = job.result().to_dataframe()
@@ -92,7 +118,7 @@ def mute_alerts_for_date(
         return
 
     bq_table = get_muted_alerts_table()
-    create_muted_alerts_table_if_not_exists(bigquery, str(bq_table))
+    create_bq_table_if_not_exist(bigquery, str(bq_table))
 
     date_partition = date.date()
 
@@ -109,7 +135,7 @@ def mute_alerts_for_date(
 
     if not result:
         logging.info(
-            "Alerting for %s:%s.%s for partition: %s has been muted."
+            "Alerts for %s:%s.%s for partition: %s have been muted."
             % (project_id, dataset, table, date_partition)
         )
 
@@ -133,7 +159,7 @@ def unmute_alerts_for_date(
     )
 
     bq_table = get_muted_alerts_table()
-    create_muted_alerts_table_if_not_exists(bigquery, bq_table)
+    create_bq_table_if_not_exist(bigquery, bq_table)
 
     if not is_alert_muted(project_id, dataset, table, date):
         logging.info(
@@ -160,7 +186,7 @@ def unmute_alerts_for_date(
         """
     )
 
-    result = bigquery.execute(
+    result, _ = bigquery.execute(
         delete_statement,
         dataset=dim.const.DESTINATION_DATASET,
         destination_table=dim.const.MUTED_ALERTS_TABLE_NAME,
@@ -178,21 +204,20 @@ def unmute_alerts_for_date(
     )
 
 
-def create_directory(path_to_create: Path) -> bool:
-    # TODO: should only do this if one already does not exist
-    logging.info("Creating directory: %s" % path_to_create)
-    path_to_create.mkdir(parents=True)
-    return True
+# def create_directory(path_to_create: Path) -> bool:
+#     logging.info("Creating directory: %s" % path_to_create)
+#     result = path_to_create.mkdir(parents=True)
+#     return True
 
 
-def check_directory_exists(path_to_check: Path) -> bool:
-    return os.path.exists(path_to_check)
+# def check_directory_exists(path_to_check: Path) -> bool:
+#     return os.path.exists(path_to_check)
 
 
-def sql_to_file(target_file: Path, sql: str) -> bool:
-    with open(target_file, "w+") as _file:
-        _file.write(sql)
-    return True
+# def sql_to_file(target_file: Path, sql: str) -> bool:
+#     with open(target_file, "w+") as _file:
+#         _file.write(sql)
+#     return True
 
 
 def get_all_paths_yaml(extension: str, config_root_path: str) -> List[str]:

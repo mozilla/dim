@@ -3,8 +3,8 @@ from typing import Any, Dict
 from dim.models.dim_check_type.base import Base
 
 
-class CustomSqlMetric(Base):
-    dim_check_type_NAME = "custom_sql_metric"
+class NumericValueMatches(Base):
+    DQ_CHECK_NAME = "numeric_values_matches"
 
     def __init__(
         self,
@@ -12,7 +12,7 @@ class CustomSqlMetric(Base):
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.dim_check_type_NAME)
+        super().__init__(project_id, dataset, table, self.DQ_CHECK_NAME)
 
     def generate_test_sql(
         self, *, params: Dict[Any, Any], extras: Dict[Any, Any]

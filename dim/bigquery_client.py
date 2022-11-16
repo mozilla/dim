@@ -75,4 +75,10 @@ class BigQueryClient:
             default_dataset=bq_dataset, **kwargs
         )
 
-        return self.client.query(query, config).result()
+        bq_query_job = self.client.query(query, config)
+        result = bq_query_job.result()
+
+        return result, {
+            "total_bytes_billed": bq_query_job.total_bytes_billed,
+            "total_bytes_processed": bq_query_job.total_bytes_processed,
+        }
