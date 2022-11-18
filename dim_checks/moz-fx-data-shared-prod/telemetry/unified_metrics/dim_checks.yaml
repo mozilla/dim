@@ -17,7 +17,6 @@ dim_config:
         columns:
           - submission_date
           - client_id
-          - sample_id
           - activity_segment
           - normalized_app_name
           - normalized_channel
