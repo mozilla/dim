@@ -12,6 +12,10 @@ dim_config:
     - type: table_row_count
       params:
         condition: ">= 1000"
+    - type: previous_count_avg_within_expected_delta
+      params:
+        days: 7
+        expected_delta: 5
     - type: not_null
       params:
         columns:
