@@ -149,6 +149,43 @@ def format_failed_check_results(results):
     return formatted_results.replace("  # noqa: E501", "")
 
 
+def prepare_params(
+    project_id,
+    dataset,
+    table,
+    *,
+    dim_config,
+    alert_muted,
+    check_params,
+    run_uuid,
+    date_partition,
+):
+    query_params = {
+        **attr.asdict(check_params),
+        "owner": json.dumps(attr.asdict(dim_config.owner)),
+        "alert_enabled": dim_config.slack_alerts.enabled,
+        "alert_muted": alert_muted,
+        "partition": date_partition,
+        "run_id": run_uuid,
+        "tier": dim_config.tier,
+        "partition_field": dim_config.partition_field,
+    }
+
+    if user_sql := query_params.get("sql"):
+        templated_fields = {
+            "project_id": project_id,
+            "dataset": dataset,
+            "table": table,
+            "date_partition": date_partition,
+        }
+
+        user_sql_template = jinja2.Environment().from_string(user_sql)
+        rendered_user_sql = user_sql_template.render(**templated_fields)
+        query_params["sql"] = dedent(rendered_user_sql)
+
+    return query_params
+
+
 def run_check(
     project_id: str,
     dataset: str,
@@ -187,11 +224,7 @@ def run_check(
             read_config(config_path=config_path)["dim_config"]
         )
 
-        tier = dim_config.tier
-        partition_field = dim_config.partition_field
-
         alert_muted = is_alert_muted(*table_param_values, date_partition)
-        slack_alert_settings = dim_config.slack_alerts
 
         table_processing_info = list()
 
@@ -205,32 +238,17 @@ def run_check(
             )
 
             dim_check = DIM_CHECK_CLASS_MAPPING[test_type](**table_params)
-
-            query_params = {
-                **attr.asdict(dim_test.params),
-                "owner": json.dumps(attr.asdict(dim_config.owner)),
-                "alert_enabled": slack_alert_settings.enabled,
-                "alert_muted": alert_muted,
-                "partition": date_partition,
-                "run_id": run_uuid,
-            }
-
-            if user_sql := query_params.get("sql"):
-                templated_fields = {
-                    **table_params,
-                    "date_partition": date_partition,
-                }
-
-                user_sql_template = jinja2.Environment().from_string(user_sql)
-                rendered_user_sql = user_sql_template.render(templated_fields)
-                query_params["sql"] = dedent(rendered_user_sql)
+            query_params = prepare_params(
+                *table_params,
+                dim_config=dim_config,
+                alert_muted=alert_muted,
+                check_params=dim_test.params,
+                run_uuid=run_uuid,
+                date_partition=date_partition,
+            )
 
             _, test_sql = dim_check.generate_test_sql(
                 params=query_params,
-                extras={
-                    "tier": tier,
-                    "partition_field": partition_field,
-                },
             )
 
             _, processing_info = dim_check.execute_test_sql(
@@ -277,7 +295,7 @@ def run_check(
 
         if (
             dim_checks_failed
-            and slack_alert_settings.enabled
+            and dim_config.slack_alerts.enabled
             and not alert_muted
         ):
             logging.info(
@@ -286,7 +304,7 @@ def run_check(
             )
 
             send_slack_alert(
-                channels=slack_alert_settings.notify.channels,
+                channels=dim_config.slack_alerts.notify.channels,
                 info=format_failed_check_results(failed_dim_checks),
             )
 

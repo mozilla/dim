@@ -7,7 +7,7 @@ SELECT
     '{{ project_id }}' AS project_id,
     '{{ dataset }}' AS dataset,
     '{{ table }}' AS table,
-    '{{ tier }}' AS tier,
+    '{{ params.tier }}' AS tier,
     '{{ dim_check_type }}' AS dim_check_type,
     DATE('{{ params.partition }}') AS date_partition,
     IF({{ params.condition }}, True, False) AS passed,

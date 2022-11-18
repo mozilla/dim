@@ -14,10 +14,8 @@ class CombinedColumnUniqueness(Base):
     ):
         super().__init__(project_id, dataset, table, self.DQ_CHECK_NAME)
 
-    def generate_test_sql(
-        self, *, params: Dict[Any, Any], extras: Dict[Any, Any]
-    ) -> str:
-        return super().generate_test_sql(params=params, extras=extras)
+    def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
+        return super().generate_test_sql(params=params)
 
     def execute_test_sql(self, sql: str) -> Any:
         return super().execute_test_sql(sql=sql)
