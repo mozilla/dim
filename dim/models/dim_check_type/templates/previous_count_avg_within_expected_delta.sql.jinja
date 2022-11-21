@@ -1,0 +1,64 @@
+WITH CTE AS (
+    SELECT
+        ARRAY_AGG(
+            STRUCT(
+                PARSE_DATE('%Y%m%d', partition_id) AS table_partition,
+                total_rows
+            )
+        ) AS included_partition_info
+    FROM
+        `{{ project_id }}.{{ dataset }}.INFORMATION_SCHEMA.PARTITIONS`
+    WHERE
+        table_name = "{{ table }}"
+        AND PARSE_DATE('%Y%m%d', partition_id)
+            BETWEEN DATE_SUB("{{ params.partition }}", INTERVAL {{ params.days }} + 1 DAY) AND DATE("{{ params.partition }}")
+)
+
+, DATE_RANGE_ROW_COUNT_AVG AS (
+    SELECT
+        IF(
+            date_range_avg_row_count IS NULL,
+            ERROR("looks like no data was found for past partitions. Make sure you're using a table and not a view."),
+            CAST(date_range_avg_row_count AS INTEGER)
+        ) AS date_range_avg_row_count
+        FROM (
+            SELECT
+                AVG(partition_info.total_rows) AS date_range_avg_row_count,
+            FROM CTE,
+            UNNEST (included_partition_info) AS partition_info
+            WHERE partition_info.table_partition <> DATE("{{ params.partition }}")
+        )
+)
+
+, ROW_COUNT_BOUNDARIES AS (
+    SELECT
+        CAST(date_range_avg_row_count - (date_range_avg_row_count / 100 * {{ params.expected_delta }}) AS INTEGER) AS min_expected,
+        CAST(date_range_avg_row_count + (date_range_avg_row_count / 100 * {{ params.expected_delta }}) AS INTEGER) AS max_expected,
+    FROM DATE_RANGE_ROW_COUNT_AVG
+)
+
+, CURRENT_PARTITION_ROW_COUNT AS (
+    SELECT
+        CAST(partition_info.total_rows AS INTEGER) AS total_rows
+    FROM CTE,
+    UNNEST (included_partition_info) AS partition_info
+    WHERE partition_info.table_partition = DATE("{{ params.partition }}")
+)
+
+SELECT
+    '{{ project_id }}' AS project_id,
+    '{{ dataset }}' AS dataset,
+    '{{ table }}' AS table,
+    '{{ tier }}' AS tier,
+    DATE('{{ params.partition }}') AS date_partition,
+    '{{ dim_check_type }}' AS dim_check_type,
+    IF((SELECT total_rows FROM CURRENT_PARTITION_ROW_COUNT) BETWEEN (SELECT min_expected FROM ROW_COUNT_BOUNDARIES) AND (SELECT max_expected FROM ROW_COUNT_BOUNDARIES), True, False) AS passed,
+    '{{ params.owner }}' AS owner,
+    TO_JSON_STRING(CTE) AS query_results,
+    TO_JSON_STRING(CONCAT("{'expected_delta': '{{ params.expected_delta }}', 'date_range_avg': '", (SELECT date_range_avg_row_count FROM DATE_RANGE_ROW_COUNT_AVG), "'",  "'expected_range': '", (SELECT CONCAT(min_expected, ' - ' , max_expected) FROM ROW_COUNT_BOUNDARIES))) AS dim_check_context,
+    CAST('{{ params.alert_enabled }}' AS BOOL) AS alert_enabled,
+    CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
+    '{{ params.run_id }}' AS run_id,
+    TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), SECOND) AS actual_run_date,
+    '[[dim_check_sql]]' AS dim_check_sql,
+FROM CTE

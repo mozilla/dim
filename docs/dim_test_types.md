@@ -198,3 +198,21 @@ Example:
           - year
         condition: "> 2020"
 ```
+
+## previous_count_avg_within_expected_delta
+
+Checks that the row count of the partition checked is within an expected value range in comparison to past partitions. Average row count for x day partitions is calculated and min and max row_count values are calculated:
+date_range_avg_row_count +/- `(date_range_avg_row_count / 100 * {{ params.expected_delta }})`. If the checked partition row count is within (min and max inclusive) this range the test passes.
+
+`Disclaimer`: can only be used with tables, does not work with views!
+
+params:
+- `days` - number of past day partitions to use to calculate row count average.
+- `expected_delta` - expected percentage difference between the current partition's row_count and the past x days average.
+
+```yaml
+- type: previous_count_avg_within_expected_delta
+      params:
+        days: 7
+        expected_delta: 5
+```

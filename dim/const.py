@@ -21,6 +21,10 @@ DIM_CHECK_CLASS_MAPPING = {
     ),
     "value_in_set": getattr(value_in_set, "ValueInSet"),  # noqa: F405
     "matches_regex": getattr(matches_regex, "MatchesRegex"),  # noqa: F405
+    "previous_count_avg_within_expected_delta": getattr(
+        previous_count_avg_within_expected_delta,  # noqa: F405
+        "PreviousCountAvgWithinExpectedDelta",
+    ),
     "numeric_values_matches": getattr(
         numeric_values_matches, "NumericValueMatches"  # noqa: F405
     ),
