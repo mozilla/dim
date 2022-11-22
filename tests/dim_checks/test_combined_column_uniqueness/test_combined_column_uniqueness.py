@@ -8,6 +8,7 @@ from dim.models.dim_check_type.combined_column_uniqueness import (
 )
 from dim.models.dim_config import DimConfig
 
+
 # flake8: noqa
 def test_combined_column_uniqueness():
     """Checking that sql is correctly generated for the combined column uniqueness"""
@@ -63,7 +64,7 @@ def test_combined_column_uniqueness():
                 COUNT(*) AS row_count,
                 COUNT(DISTINCT CONCAT(project_id, dataset, table, date_partition)) AS combination_row_count
             FROM `dummy_project.dummy_dataset.dummy_table`
-            WHERE DATE(None) = DATE('1970-01-01')
+            WHERE DATE(submission_date) = DATE('1970-01-01')
         )
 
         SELECT
