@@ -6,6 +6,7 @@ from dim.app import prepare_params
 from dim.models.dim_check_type.not_null import NotNull
 from dim.models.dim_config import DimConfig
 
+
 # flake8: noqa
 def test_not_null():
     """Checking that sql is correctly generated for the not null column check"""

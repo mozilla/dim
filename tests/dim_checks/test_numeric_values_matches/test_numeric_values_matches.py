@@ -8,6 +8,7 @@ from dim.models.dim_check_type.numeric_values_matches import (
 )
 from dim.models.dim_config import DimConfig
 
+
 # flake8: noqa
 def test_numeric_values_matches():
     """Checking that sql is correctly generated for the uniqueness check"""

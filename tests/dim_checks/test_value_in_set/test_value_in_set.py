@@ -6,6 +6,7 @@ from dim.app import prepare_params
 from dim.models.dim_check_type.value_in_set import ValueInSet
 from dim.models.dim_config import DimConfig
 
+
 # flake8: noqa
 def test_value_in_set():
     """Checking that sql is correctly generated for the value in set check"""
