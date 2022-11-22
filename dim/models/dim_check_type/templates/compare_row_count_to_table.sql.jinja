@@ -2,7 +2,7 @@
 WITH CTE AS (
     SELECT
         (SELECT COUNT(*) FROM `{{ project_id }}.{{ dataset }}.{{ table }}` WHERE DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')) AS row_count,
-        (SELECT COUNT(*) FROM `{{ params.table }}` WHERE DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')) AS {{ other_table[2] }}_row_count,
+        (SELECT COUNT(*) FROM `{{ params.table }}` WHERE DATE({{ params.table_partition_field }}) = DATE('{{ params.partition }}')) AS {{ other_table[2] }}_row_count,
 )
 
 SELECT
@@ -15,7 +15,7 @@ SELECT
     IF(row_count = {{ other_table[2] }}_row_count, True, False) AS passed,
     '{{ params.owner }}' AS owner,
     TO_JSON_STRING(CTE) AS query_results,
-    TO_JSON_STRING('{"other_table":"{{ params.table }}", "other_table_partition_field": "{{ params.partition_field }}"}') AS dim_check_context,
+    TO_JSON_STRING('{"other_table":"{{ params.table }}", "other_table_partition_field": "{{ params.table_partition_field }}"}') AS dim_check_context,
     CAST('{{ params.alert_enabled }}' AS BOOL) AS alert_enabled,
     CAST('{{ params.alert_muted }}' AS BOOL) AS alert_muted,
     '{{ params.run_id }}' AS run_id,

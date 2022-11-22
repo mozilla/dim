@@ -3,12 +3,12 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.uniqueness import Uniqueness
+from dim.models.dim_check_type.column_length import ColumnLength
 from dim.models.dim_config import DimConfig
 
 
-def test_uniqueness():
-    """Checking that sql is correctly generated for the uniqueness check"""
+def test_column_length():
+    """Checking that sql is correctly generated for the column length"""
 
     table = "dummy_project.dummy_dataset.dummy_table"
 
@@ -16,21 +16,21 @@ def test_uniqueness():
         """
         dim_config:
           owner:
-            email: dummy@mozilla.com
-            slack: dummy
+            email: akommasani@mozilla.com
+            slack: alekhya
           alerts_enabled:
             enabled: true
             notify:
               channels:
                 - dummy_channel
           partition_field: submission_date
-          tier: tier_3
+          tier: tier_2
           dim_tests:
-            - type: uniqueness
+            - type: column_length
               params:
                 columns:
-                  - client_id
-                  - another_unique_column
+                  - country
+                condition: "= 2"
         """
     )
 
@@ -38,7 +38,7 @@ def test_uniqueness():
         yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
     )
 
-    dim_check = Uniqueness(*table.split("."))
+    dim_check = ColumnLength(*table.split("."))
     check_params = dim_config.dim_tests[0].params
 
     query_params = prepare_params(
@@ -47,7 +47,7 @@ def test_uniqueness():
         alert_muted=False,
         check_params=check_params,
         run_uuid="unit_test_run",
-        date_partition="1970-01-01",
+        date_partition="1990-01-01",
     )
     _, generated_sql = dim_check.generate_test_sql(params=query_params)
 
@@ -55,23 +55,23 @@ def test_uniqueness():
         """\
         WITH CTE AS (
             SELECT
-                (COUNT(*) - COUNT(DISTINCT client_id)) AS client_id_duplicate_count,(COUNT(*) - COUNT(DISTINCT another_unique_column)) AS another_unique_column_duplicate_count,  # noqa: E501
+                COUNTIF(NOT LENGTH(country) = 2 ) AS country_length_mismatch_count,
             FROM `dummy_project.dummy_dataset.dummy_table`
             WHERE
-                DATE(submission_date) = DATE('1970-01-01')
+                DATE(submission_date) = DATE('1990-01-01')
         )
 
         SELECT
             'dummy_project' AS project_id,
             'dummy_dataset' AS dataset,
             'dummy_table' AS table,
-            'tier_3' AS tier,
-            DATE('1970-01-01') AS date_partition,
-            'uniqueness' AS dim_check_type,
-            IF(client_id_duplicate_count + another_unique_column_duplicate_count = 0, True, False) AS passed,  # noqa: E501
-            '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
+            'tier_2' AS tier,
+            DATE('1990-01-01') AS date_partition,
+            'column_length' AS dim_check_type,
+            IF(country_length_mismatch_count = 0, True, False) AS passed,
+            '{"email": "akommasani@mozilla.com", "slack": "alekhya"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'columns': '['client_id', 'another_unique_column']") AS dim_check_context,  # noqa: E501
+            TO_JSON_STRING("{'condition': '= 2', 'columns': '['country']") AS dim_check_context,  # noqa: E501
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,
@@ -79,5 +79,4 @@ def test_uniqueness():
             '[[dim_check_sql]]' AS dim_check_sql,
         FROM CTE"""
     )
-
     assert generated_sql == expected_sql.replace("  # noqa: E501", "")

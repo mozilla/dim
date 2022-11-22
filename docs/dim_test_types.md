@@ -138,7 +138,7 @@ Example:
 - type: compare_row_count_to_table
       params:
         table: moz-fx-data-shared-prod.internet_outages.global_outages_v1
-        partition_field: datetime
+        table_partition_field: datetime
 ```
 
 ## combined_column_uniqueness

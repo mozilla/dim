@@ -1,64 +1,85 @@
-# from textwrap import dedent
+from textwrap import dedent
 
-# from dim.models.dim_config import DimConfig
-# from dim.models.dim_check_type.not_null import NotNull
+import yaml
+
+from dim.app import prepare_params
+from dim.models.dim_check_type.not_null import NotNull
+from dim.models.dim_config import DimConfig
 
 
-# def test_not_null_pass():
-#     """ """
+def test_not_null():
+    """
+    Checking that sql is correctly generated
+    for the not null column check
+    """
 
-#     config = DimConfig.from_dict(
-#         {
-#             "owner": {"email": "akommasani@mozilla.com"},
-#             "tier": "tier_3",
-#             "slack_alerts": {
-#                 "enabled": True,
-#                 "notify": {
-#                     "channels": ["mvp"]
-#                 },
-#             },
-#             "dim_tests": [
-#                 {
-#                     "type": "not_null",
-#                     "params": {
-#                         "columns": ["segment"],
-#                         "condition": "row_count >= 1",
-#                     },
-#                 }
-#             ],
-#         }
-#     )
-#     dim_check_type = NotNull(
-#         project_id="test_project",
-#         dataset="test_dataset",
-#         table="test_table",
-#     )
-#     _, generated_sql = dim_check_type.generate_test_sql(config.dim_tests[0].params)  # noqa: E501
+    table = "desination_project.destination_dataset.destination_table"
 
-#     expected_sql = dedent(
-#         """\
-#         WITH CTE AS (
-#             SELECT
-#                 COUNT(*) AS row_count,
-#                 segment,
-#             FROM `test_project.test_dataset.test_table`
-#             WHERE
-#                 date_partition = DATE('2022-01-13')
-#                 AND segment IS NULL
-#             GROUP BY
-#                 segment
-#         )
+    yaml_config = dedent(
+        """
+        dim_config:
+          owner:
+            email: dummy@mozilla.com
+            slack: dummy
+          alerts_enabled:
+            enabled: true
+            notify:
+              channels:
+                - dummy_channel
+          partition_field: submission_date
+          tier: tier_3
+          dim_tests:
+            - type: not_null
+              params:
+                columns:
+                - age
+                - country
+        """
+    )
 
-#         SELECT
-#             TO_JSON_STRING(CTE) AS query_results,
-#             'test_project' AS project_id,
-#             'test_dataset' AS dataset,
-#             'test_table' AS table,
-#             'not_null" AS dim_check_type,
-#             '{"email": "akommasani@mozilla.com"}' AS dataset_owner,
-#             'true' AS alerts_enabled,
-#             TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), SECOND) AS actual_run_date
-#         FROM CTE"""
-#     )
+    dim_config = DimConfig.from_dict(
+        yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
+    )
 
-#     assert expected_sql == generated_sql
+    dim_check = NotNull(*table.split("."))
+    check_params = dim_config.dim_tests[0].params
+
+    query_params = prepare_params(
+        *table.split("."),
+        dim_config=dim_config,
+        alert_muted=False,
+        check_params=check_params,
+        run_uuid="unit_test_run",
+        date_partition="1970-01-01",
+    )
+    _, generated_sql = dim_check.generate_test_sql(params=query_params)
+
+    expected_sql = dedent(
+        """\
+        WITH CTE AS (
+            SELECT
+                COUNTIF(age IS NULL) AS age_null_count,COUNTIF(country IS NULL) AS country_null_count,  # noqa: E501
+            FROM `desination_project.destination_dataset.destination_table`
+            WHERE
+                DATE(submission_date) = DATE('1970-01-01')
+        )
+
+        SELECT
+            'desination_project' AS project_id,
+            'destination_dataset' AS dataset,
+            'destination_table' AS table,
+            'tier_3' AS tier,
+            DATE('1970-01-01') AS date_partition,
+            'not_null' AS dim_check_type,
+            IF(age_null_count + country_null_count = 0, True, False) AS passed,
+            '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
+            TO_JSON_STRING(CTE) AS query_results,
+            TO_JSON_STRING("{'columns': '['age', 'country']") AS dim_check_context,
+            CAST('False' AS BOOL) AS alert_enabled,
+            CAST('False' AS BOOL) AS alert_muted,
+            'unit_test_run' AS run_id,
+            TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), SECOND) AS actual_run_date,
+            '[[dim_check_sql]]' AS dim_check_sql,
+        FROM CTE"""
+    )
+    assert generated_sql == expected_sql.replace("  # noqa: E501", "")

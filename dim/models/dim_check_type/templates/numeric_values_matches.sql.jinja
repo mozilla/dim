@@ -1,7 +1,6 @@
 WITH CTE AS (
     SELECT
-        {% for column in params.columns %}COUNTIF(NOT CAST({{ column }} AS INTEGER) {{ params.condition }}) AS {{ column }}_value_mismatch_count,
-        {% endfor %}
+        {% for column in params.columns %}COUNTIF(NOT CAST({{ column }} AS INTEGER) {{ params.condition }}) AS {{ column }}_value_mismatch_count,{% endfor %}
     FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
     WHERE DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')
 )
