@@ -1,0 +1,96 @@
+dim_config:
+  owner:
+    email: lvargas@mozilla.com
+    slack: lvargas
+  alerts_enabled:
+    enabled: true
+    notify:
+      channels:
+        - dim_test_run
+  tier: tier_1
+  dim_tests:
+    - type: table_row_count
+      params:
+        condition: ">= 1000"
+    - type: not_null
+      params:
+        columns:
+          - cohort_date
+          - client_id
+          - activity_segment
+          - app_version
+          - device_model
+          - locale
+          - normalized_app_name
+          - normalized_channel
+          - normalized_os
+          - normalized_os_version
+          - os_version_major
+          - os_version_minor
+    - type: column_length
+      params:
+        columns:
+          - country
+        condition: "= 2"
+    - type: column_length
+      params:
+        columns:
+          - client_id
+        condition: "= 36"
+    - type: value_in_set
+      params:
+        columns:
+          - normalized_channel
+        expected_values:
+          - nightly
+          - aurora
+          - release
+          - Other
+          - beta
+          - esr
+    - type: value_in_set
+      params:
+        columns:
+          - activity_segment
+        expected_values:
+          - infrequent_user
+          - other
+          - casual_user
+          - regular_user
+          - core_user
+    - type: value_in_set
+      params:
+        columns:
+          - normalized_app_name
+        expected_values:
+          - Fenix
+          - "Fenix BrowserStack"
+          - "Firefox iOS"
+          - "Firefox iOS BrowserStack"
+          - "Firefox Desktop"
+          - "Focus iOS"
+          - "Focus Android"
+          - "Focus iOS BrowserStack"
+          - "Focus Android Glean"
+          - "Focus Android Glean BrowserStack"
+    - type: value_in_set
+      params:
+        columns:
+          - normalized_os
+        expected_values:
+          - iOS
+          - Android
+          - Linux
+          - Linux_CXL
+          - Darwin
+          - Windows_95
+          - Windows_98
+          - Windows_NT
+          - OpenBSD
+          - SunOS
+          - HubertOS
+    - type: matches_regex
+      params:
+        columns:
+          - locale
+        regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB
