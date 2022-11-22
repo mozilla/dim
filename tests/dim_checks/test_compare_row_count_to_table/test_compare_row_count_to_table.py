@@ -3,12 +3,14 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.compare_row_count_to_table import CompareRowCountToTable
+from dim.models.dim_check_type.compare_row_count_to_table import (
+    CompareRowCountToTable,
+)
 from dim.models.dim_config import DimConfig
 
-
+# flake8: noqa
 def test_compare_row_count_to_table():
-    """Checking that sql is correctly generated for the compare row count to table check"""
+    """Checking that sql is correctly generated for the compare row count to table check""" # noqa: E501
 
     table = "dummy_project.dummy_dataset.dummy_table"
 
@@ -52,11 +54,11 @@ def test_compare_row_count_to_table():
 
     expected_sql = dedent(
         """\
-        
+        # noqa: W293
         WITH CTE AS (
             SELECT
-                (SELECT COUNT(*) FROM `dummy_project.dummy_dataset.dummy_table` WHERE DATE(submission_date) = DATE('1990-01-01')) AS row_count,
-                (SELECT COUNT(*) FROM `dummy2_project.dummy2_dataset.dummy2_table` WHERE DATE(submission_date2) = DATE('1990-01-01')) AS dummy2_table_row_count,
+                (SELECT COUNT(*) FROM `dummy_project.dummy_dataset.dummy_table` WHERE DATE(submission_date) = DATE('1990-01-01')) AS row_count, # noqa: E501
+                (SELECT COUNT(*) FROM `dummy2_project.dummy2_dataset.dummy2_table` WHERE DATE(submission_date2) = DATE('1990-01-01')) AS dummy2_table_row_count, # noqa: E501
         )
 
         SELECT
@@ -69,7 +71,7 @@ def test_compare_row_count_to_table():
             IF(row_count = dummy2_table_row_count, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING('{"other_table":"dummy2_project.dummy2_dataset.dummy2_table", "other_table_partition_field": "submission_date2"}') AS dim_check_context,
+            TO_JSON_STRING('{"other_table":"dummy2_project.dummy2_dataset.dummy2_table", "other_table_partition_field": "submission_date2"}') AS dim_check_context, # noqa: E501
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

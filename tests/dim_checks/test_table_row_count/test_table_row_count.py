@@ -8,7 +8,7 @@ from dim.models.dim_config import DimConfig
 
 
 def test_table_row_count():
-    """Checking that sql is correctly generated for the table row count check"""
+    """Checking that sql is correctly generated for the table row count check"""   # noqa: E501
 
     table = "desination_project.destination_dataset.destination_table"
 

@@ -6,9 +6,9 @@ from dim.app import prepare_params
 from dim.models.dim_check_type.column_length import ColumnLength
 from dim.models.dim_config import DimConfig
 
-
+# flake8: noqa
 def test_column_length():
-    """Checking that sql is correctly generated for the column length"""
+    """Checking that sql is correctly generated for the column length"""   
 
     table = "dummy_project.dummy_dataset.dummy_table"
 
@@ -55,7 +55,7 @@ def test_column_length():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(NOT LENGTH(country) = 2 ) AS country_length_mismatch_count,
+                COUNTIF(NOT LENGTH(country) = 2 ) AS country_length_mismatch_count, 
             FROM `dummy_project.dummy_dataset.dummy_table`
             WHERE
                 DATE(None) = DATE('1990-01-01')
@@ -71,7 +71,7 @@ def test_column_length():
             IF(country_length_mismatch_count = 0, True, False) AS passed,
             '{"email": "akommasani@mozilla.com", "slack": "alekhya"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'condition': '= 2', 'columns': '['country']") AS dim_check_context,
+            TO_JSON_STRING("{'condition': '= 2', 'columns': '['country']") AS dim_check_context,  # noqa: E501
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

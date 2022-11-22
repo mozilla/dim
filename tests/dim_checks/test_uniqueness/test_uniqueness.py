@@ -58,11 +58,7 @@ def test_uniqueness():
                 (COUNT(*) - COUNT(DISTINCT client_id)) AS client_id_duplicate_count,(COUNT(*) - COUNT(DISTINCT another_unique_column)) AS another_unique_column_duplicate_count,  # noqa: E501
             FROM `dummy_project.dummy_dataset.dummy_table`
             WHERE
-                DATE(None) = DATE('1970-01-01')
-            GROUP BY
-                client_id,
-                another_unique_column
-            HAVING COUNT(*) > 1
+                DATE(submission_date) = DATE('1970-01-01')
         )
 
         SELECT

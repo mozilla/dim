@@ -3,10 +3,12 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.combined_column_uniqueness import CombinedColumnUniqueness
+from dim.models.dim_check_type.combined_column_uniqueness import (
+    CombinedColumnUniqueness,
+)
 from dim.models.dim_config import DimConfig
 
-
+# flake8: noqa
 def test_combined_column_uniqueness():
     """Checking that sql is correctly generated for the combined column uniqueness"""
 
