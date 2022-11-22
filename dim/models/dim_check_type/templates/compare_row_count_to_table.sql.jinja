@@ -2,7 +2,7 @@
 WITH CTE AS (
     SELECT
         (SELECT COUNT(*) FROM `{{ project_id }}.{{ dataset }}.{{ table }}` WHERE DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')) AS row_count,
-        (SELECT COUNT(*) FROM `{{ params.table }}` WHERE DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')) AS {{ other_table[2] }}_row_count,
+        (SELECT COUNT(*) FROM `{{ params.table }}` WHERE DATE({{ params.table_partition_field }}) = DATE('{{ params.partition }}')) AS {{ other_table[2] }}_row_count,
 )
 
 SELECT

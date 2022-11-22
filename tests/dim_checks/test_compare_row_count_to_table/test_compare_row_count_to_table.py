@@ -54,12 +54,11 @@ def test_compare_row_count_to_table():
     _, generated_sql = dim_check.generate_test_sql(params=query_params)
 
     expected_sql = dedent(
-        """\
-        # noqa: W293
+        """
         WITH CTE AS (
             SELECT
-                (SELECT COUNT(*) FROM `dummy_project.dummy_dataset.dummy_table` WHERE DATE(submission_date) = DATE('1990-01-01')) AS row_count, # noqa: E501
-                (SELECT COUNT(*) FROM `dummy2_project.dummy2_dataset.dummy2_table` WHERE DATE(submission_date2) = DATE('1990-01-01')) AS dummy2_table_row_count, # noqa: E501
+                (SELECT COUNT(*) FROM `dummy_project.dummy_dataset.dummy_table` WHERE DATE(submission_date) = DATE('1990-01-01')) AS row_count,  # noqa: E501
+                (SELECT COUNT(*) FROM `dummy2_project.dummy2_dataset.dummy2_table` WHERE DATE(submission_date2) = DATE('1990-01-01')) AS dummy2_table_row_count,  # noqa: E501
         )
 
         SELECT
@@ -72,7 +71,7 @@ def test_compare_row_count_to_table():
             IF(row_count = dummy2_table_row_count, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING('{"other_table":"dummy2_project.dummy2_dataset.dummy2_table", "other_table_partition_field": "submission_date2"}') AS dim_check_context, # noqa: E501
+            TO_JSON_STRING('{"other_table":"dummy2_project.dummy2_dataset.dummy2_table", "other_table_partition_field": "submission_date2"}') AS dim_check_context,  # noqa: E501
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

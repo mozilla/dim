@@ -52,6 +52,7 @@ class DimCheckParams:
     enable_alerts_enabled: Optional[bool] = attr.ib(False)
     table: Optional[str] = attr.ib(None)
     partition_field: Optional[str] = attr.ib(None)
+    table_partition_field: Optional[str] = attr.ib(None)
 
 
 @attr.s(auto_attribs=True)
