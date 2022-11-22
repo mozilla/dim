@@ -8,7 +8,7 @@ from dim.models.dim_config import DimConfig
 
 
 def test_table_row_count():
-    """Checking that sql is correctly generated for the table row count check"""   # noqa: E501
+    """Checking that sql is correctly generated for the table row count check"""  # noqa: E501
 
     table = "desination_project.destination_dataset.destination_table"
 
@@ -55,7 +55,7 @@ def test_table_row_count():
               SELECT
                   COUNT(*) AS row_count
               FROM `desination_project.destination_dataset.destination_table`
-              WHERE DATE(None) = DATE('1970-01-01')
+              WHERE DATE(submission_date) = DATE('1970-01-01')
           )
 
           SELECT
