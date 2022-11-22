@@ -9,9 +9,11 @@ from dim.models.dim_check_type.combined_column_uniqueness import (
 from dim.models.dim_config import DimConfig
 
 
-# flake8: noqa
 def test_combined_column_uniqueness():
-    """Checking that sql is correctly generated for the combined column uniqueness"""
+    """
+    Checking that sql is correctly generated
+    for the combined column uniqueness
+    """
 
     table = "dummy_project.dummy_dataset.dummy_table"
 
@@ -62,7 +64,7 @@ def test_combined_column_uniqueness():
         WITH CTE AS (
             SELECT
                 COUNT(*) AS row_count,
-                COUNT(DISTINCT CONCAT(project_id, dataset, table, date_partition)) AS combination_row_count
+                COUNT(DISTINCT CONCAT(project_id, dataset, table, date_partition)) AS combination_row_count  # noqa: E501
             FROM `dummy_project.dummy_dataset.dummy_table`
             WHERE DATE(submission_date) = DATE('1970-01-01')
         )
@@ -77,7 +79,7 @@ def test_combined_column_uniqueness():
             IF(row_count = combination_row_count, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'condition': 'None', 'expected_values': 'None', 'columns': '['project_id', 'dataset', 'table', 'date_partition']") AS dim_check_context,
+            TO_JSON_STRING("{'condition': 'None', 'expected_values': 'None', 'columns': '['project_id', 'dataset', 'table', 'date_partition']") AS dim_check_context,  # noqa: E501
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

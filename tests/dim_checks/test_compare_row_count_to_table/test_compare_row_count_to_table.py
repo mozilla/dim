@@ -9,7 +9,6 @@ from dim.models.dim_check_type.compare_row_count_to_table import (
 from dim.models.dim_config import DimConfig
 
 
-# flake8: noqa
 def test_compare_row_count_to_table():
     """Checking that sql is correctly generated for the compare row count to table check"""  # noqa: E501
 

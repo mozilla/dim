@@ -7,7 +7,6 @@ from dim.models.dim_check_type.value_in_set import ValueInSet
 from dim.models.dim_config import DimConfig
 
 
-# flake8: noqa
 def test_value_in_set():
     """Checking that sql is correctly generated for the value in set check"""
 
@@ -58,7 +57,7 @@ def test_value_in_set():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(os NOT IN ('ios', 'android')) AS os_unexpected_value_count,
+                COUNTIF(os NOT IN ('ios', 'android')) AS os_unexpected_value_count,  # noqa: E501
             FROM `dummy_project.dummy_dataset.dummy_table`
             WHERE
                 DATE(submission_date) = DATE('1970-01-01')
@@ -74,7 +73,7 @@ def test_value_in_set():
             IF(os_unexpected_value_count = 0, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'expected_values': '['ios', 'android']', 'columns': '['os']") AS dim_check_context,
+            TO_JSON_STRING("{'expected_values': '['ios', 'android']', 'columns': '['os']") AS dim_check_context,  # noqa: E501
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

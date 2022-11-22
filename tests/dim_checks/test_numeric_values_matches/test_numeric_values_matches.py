@@ -9,9 +9,11 @@ from dim.models.dim_check_type.numeric_values_matches import (
 from dim.models.dim_config import DimConfig
 
 
-# flake8: noqa
 def test_numeric_values_matches():
-    """Checking that sql is correctly generated for the uniqueness check"""
+    """
+    Checking that sql is correctly generated
+    for the uniqueness check
+    """
 
     table = "desination_project.destination_dataset.destination_table"
 
@@ -58,7 +60,7 @@ def test_numeric_values_matches():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(NOT CAST(age AS INTEGER) > 10) AS age_value_mismatch_count,
+                COUNTIF(NOT CAST(age AS INTEGER) > 10) AS age_value_mismatch_count,  # noqa: E501
             FROM `desination_project.destination_dataset.destination_table`
             WHERE DATE(submission_date) = DATE('1970-01-01')
         )
@@ -73,7 +75,7 @@ def test_numeric_values_matches():
             IF(age_value_mismatch_count = 0, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'condition': '> 10', 'columns': '['age']") AS dim_check_context,
+            TO_JSON_STRING("{'condition': '> 10', 'columns': '['age']") AS dim_check_context,  # noqa: E501
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

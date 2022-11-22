@@ -7,7 +7,6 @@ from dim.models.dim_check_type.column_length import ColumnLength
 from dim.models.dim_config import DimConfig
 
 
-# flake8: noqa
 def test_column_length():
     """Checking that sql is correctly generated for the column length"""
 

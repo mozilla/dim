@@ -7,9 +7,11 @@ from dim.models.dim_check_type.not_null import NotNull
 from dim.models.dim_config import DimConfig
 
 
-# flake8: noqa
 def test_not_null():
-    """Checking that sql is correctly generated for the not null column check"""
+    """
+    Checking that sql is correctly generated
+    for the not null column check
+    """
 
     table = "desination_project.destination_dataset.destination_table"
 
@@ -56,7 +58,7 @@ def test_not_null():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(age IS NULL) AS age_null_count,COUNTIF(country IS NULL) AS country_null_count,
+                COUNTIF(age IS NULL) AS age_null_count,COUNTIF(country IS NULL) AS country_null_count,  # noqa: E501
             FROM `desination_project.destination_dataset.destination_table`
             WHERE
                 DATE(submission_date) = DATE('1970-01-01')
