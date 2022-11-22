@@ -56,7 +56,7 @@ def test_matches_regex():
 
       WITH CTE AS (
           SELECT
-              COUNTIF(NOT REGEXP_CONTAINS(locale, r"^23")) AS locale_regex_mismatch_count, # noqa: E501
+              COUNTIF(NOT REGEXP_CONTAINS(locale, r"^23")) AS locale_regex_mismatch_count,  # noqa: E501
           FROM `dummy_project.dummy_dataset.dummy_table`
           WHERE DATE(submission_date) = DATE('1970-01-01')
       )
@@ -71,7 +71,7 @@ def test_matches_regex():
           IF(locale_regex_mismatch_count = 0, True, False) AS passed,
           '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
           TO_JSON_STRING(CTE) AS query_results,
-          TO_JSON_STRING('''{"regex": "^23","columns": "['locale']"''') AS dim_check_context, # noqa: E501
+          TO_JSON_STRING('''{"regex": "^23","columns": "['locale']"''') AS dim_check_context,  # noqa: E501
           CAST('False' AS BOOL) AS alert_enabled,
           CAST('False' AS BOOL) AS alert_muted,
           'unit_test_run' AS run_id,
