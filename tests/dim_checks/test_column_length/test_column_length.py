@@ -6,9 +6,10 @@ from dim.app import prepare_params
 from dim.models.dim_check_type.column_length import ColumnLength
 from dim.models.dim_config import DimConfig
 
+
 # flake8: noqa
 def test_column_length():
-    """Checking that sql is correctly generated for the column length"""   
+    """Checking that sql is correctly generated for the column length"""
 
     table = "dummy_project.dummy_dataset.dummy_table"
 
@@ -55,10 +56,10 @@ def test_column_length():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(NOT LENGTH(country) = 2 ) AS country_length_mismatch_count, 
+                COUNTIF(NOT LENGTH(country) = 2 ) AS country_length_mismatch_count,
             FROM `dummy_project.dummy_dataset.dummy_table`
             WHERE
-                DATE(None) = DATE('1990-01-01')
+                DATE(submission_date) = DATE('1990-01-01')
         )
 
         SELECT
