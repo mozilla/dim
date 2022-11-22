@@ -3,12 +3,12 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.not_null import NotNull
+from dim.models.dim_check_type.numeric_values_matches import NumericValueMatches
 from dim.models.dim_config import DimConfig
 
 
-def test_not_null():
-    """Checking that sql is correctly generated for the not null column check"""
+def test_numeric_values_matches():
+    """Checking that sql is correctly generated for the uniqueness check"""
 
     table = "desination_project.destination_dataset.destination_table"
 
@@ -26,11 +26,11 @@ def test_not_null():
           partition_field: submission_date
           tier: tier_3
           dim_tests:
-            - type: not_null
+            - type: numeric_values_matches
               params:
                 columns:
                 - age
-                - country
+                condition: "> 10"
         """
     )
 
@@ -38,7 +38,7 @@ def test_not_null():
         yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
     )
 
-    dim_check = NotNull(*table.split("."))
+    dim_check = NumericValueMatches(*table.split("."))
     check_params = dim_config.dim_tests[0].params
 
     query_params = prepare_params(
@@ -55,10 +55,9 @@ def test_not_null():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(age IS NULL) AS age_null_count,COUNTIF(country IS NULL) AS country_null_count,
+                COUNTIF(NOT CAST(age AS INTEGER) > 10) AS age_value_mismatch_count,
             FROM `desination_project.destination_dataset.destination_table`
-            WHERE
-                DATE(submission_date) = DATE('1970-01-01')
+            WHERE DATE(submission_date) = DATE('1970-01-01')
         )
 
         SELECT
@@ -67,11 +66,11 @@ def test_not_null():
             'destination_table' AS table,
             'tier_3' AS tier,
             DATE('1970-01-01') AS date_partition,
-            'not_null' AS dim_check_type,
-            IF(age_null_count + country_null_count = 0, True, False) AS passed,
+            'numeric_values_matches' AS dim_check_type,
+            IF(age_value_mismatch_count = 0, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'columns': '['age', 'country']") AS dim_check_context,
+            TO_JSON_STRING("{'condition': '> 10', 'columns': '['age']") AS dim_check_context,
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

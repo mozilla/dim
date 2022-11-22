@@ -3,14 +3,14 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.not_null import NotNull
+from dim.models.dim_check_type.combined_column_uniqueness import CombinedColumnUniqueness
 from dim.models.dim_config import DimConfig
 
 
-def test_not_null():
-    """Checking that sql is correctly generated for the not null column check"""
+def test_combined_column_uniqueness():
+    """Checking that sql is correctly generated for the combined column uniqueness"""
 
-    table = "desination_project.destination_dataset.destination_table"
+    table = "dummy_project.dummy_dataset.dummy_table"
 
     yaml_config = dedent(
         """
@@ -26,11 +26,14 @@ def test_not_null():
           partition_field: submission_date
           tier: tier_3
           dim_tests:
-            - type: not_null
+            - type: combined_column_uniqueness
               params:
                 columns:
-                - age
-                - country
+                - project_id
+                - dataset
+                - table
+                - date_partition
+
         """
     )
 
@@ -38,7 +41,7 @@ def test_not_null():
         yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
     )
 
-    dim_check = NotNull(*table.split("."))
+    dim_check = CombinedColumnUniqueness(*table.split("."))
     check_params = dim_config.dim_tests[0].params
 
     query_params = prepare_params(
@@ -55,23 +58,23 @@ def test_not_null():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(age IS NULL) AS age_null_count,COUNTIF(country IS NULL) AS country_null_count,
-            FROM `desination_project.destination_dataset.destination_table`
-            WHERE
-                DATE(submission_date) = DATE('1970-01-01')
+                COUNT(*) AS row_count,
+                COUNT(DISTINCT CONCAT(project_id, dataset, table, date_partition)) AS combination_row_count
+            FROM `dummy_project.dummy_dataset.dummy_table`
+            WHERE DATE(None) = DATE('1970-01-01')
         )
 
         SELECT
-            'desination_project' AS project_id,
-            'destination_dataset' AS dataset,
-            'destination_table' AS table,
+            'dummy_project' AS project_id,
+            'dummy_dataset' AS dataset,
+            'dummy_table' AS table,
             'tier_3' AS tier,
             DATE('1970-01-01') AS date_partition,
-            'not_null' AS dim_check_type,
-            IF(age_null_count + country_null_count = 0, True, False) AS passed,
+            'combined_column_uniqueness' AS dim_check_type,
+            IF(row_count = combination_row_count, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'columns': '['age', 'country']") AS dim_check_context,
+            TO_JSON_STRING("{'condition': 'None', 'expected_values': 'None', 'columns': '['project_id', 'dataset', 'table', 'date_partition']") AS dim_check_context,
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,

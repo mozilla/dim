@@ -3,14 +3,14 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.not_null import NotNull
+from dim.models.dim_check_type.value_in_set import ValueInSet
 from dim.models.dim_config import DimConfig
 
 
-def test_not_null():
-    """Checking that sql is correctly generated for the not null column check"""
+def test_value_in_set():
+    """Checking that sql is correctly generated for the value in set check"""
 
-    table = "desination_project.destination_dataset.destination_table"
+    table = "dummy_project.dummy_dataset.dummy_table"
 
     yaml_config = dedent(
         """
@@ -26,11 +26,13 @@ def test_not_null():
           partition_field: submission_date
           tier: tier_3
           dim_tests:
-            - type: not_null
+            - type: value_in_set
               params:
                 columns:
-                - age
-                - country
+                  - os
+                expected_values:
+                  - ios
+                  - android
         """
     )
 
@@ -38,7 +40,7 @@ def test_not_null():
         yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
     )
 
-    dim_check = NotNull(*table.split("."))
+    dim_check = ValueInSet(*table.split("."))
     check_params = dim_config.dim_tests[0].params
 
     query_params = prepare_params(
@@ -55,23 +57,23 @@ def test_not_null():
         """\
         WITH CTE AS (
             SELECT
-                COUNTIF(age IS NULL) AS age_null_count,COUNTIF(country IS NULL) AS country_null_count,
-            FROM `desination_project.destination_dataset.destination_table`
+                COUNTIF(os NOT IN ('ios', 'android')) AS os_unexpected_value_count,
+            FROM `dummy_project.dummy_dataset.dummy_table`
             WHERE
                 DATE(submission_date) = DATE('1970-01-01')
         )
 
         SELECT
-            'desination_project' AS project_id,
-            'destination_dataset' AS dataset,
-            'destination_table' AS table,
+            'dummy_project' AS project_id,
+            'dummy_dataset' AS dataset,
+            'dummy_table' AS table,
             'tier_3' AS tier,
             DATE('1970-01-01') AS date_partition,
-            'not_null' AS dim_check_type,
-            IF(age_null_count + country_null_count = 0, True, False) AS passed,
+            'value_in_set' AS dim_check_type,
+            IF(os_unexpected_value_count = 0, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,
-            TO_JSON_STRING("{'columns': '['age', 'country']") AS dim_check_context,
+            TO_JSON_STRING("{'expected_values': '['ios', 'android']', 'columns': '['os']") AS dim_check_context,
             CAST('False' AS BOOL) AS alert_enabled,
             CAST('False' AS BOOL) AS alert_muted,
             'unit_test_run' AS run_id,
@@ -79,4 +81,5 @@ def test_not_null():
             '[[dim_check_sql]]' AS dim_check_sql,
         FROM CTE"""
     )
+
     assert generated_sql == expected_sql.replace("  # noqa: E501", "")

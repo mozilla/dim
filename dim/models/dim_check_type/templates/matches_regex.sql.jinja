@@ -1,5 +1,4 @@
 {% set bq_string_friendly_regex = params.regex.replace('\\', '\\\\') %}
-
 WITH CTE AS (
     SELECT
         {% for column in params.columns %}COUNTIF(NOT REGEXP_CONTAINS({{ column }}, r"{{ params.regex }}")) AS {{ column }}_regex_mismatch_count,{% endfor %}

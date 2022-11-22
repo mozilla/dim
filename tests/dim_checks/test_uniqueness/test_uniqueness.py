@@ -23,7 +23,7 @@ def test_uniqueness():
             notify:
               channels:
                 - dummy_channel
-          date_partition_field: submission_date
+          partition_field: submission_date
           tier: tier_3
           dim_tests:
             - type: uniqueness

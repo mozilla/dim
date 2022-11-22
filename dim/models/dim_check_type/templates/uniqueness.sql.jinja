@@ -4,9 +4,6 @@ WITH CTE AS (
     FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
     WHERE
         DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')
-    GROUP BY{% for column in params.columns %}
-        {{ column }}{{ ',' if not loop.last else '' }}{% endfor %}
-    HAVING COUNT(*) > 1
 )
 
 SELECT
