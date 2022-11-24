@@ -6,8 +6,7 @@ dim_config:
     enabled: true
     notify:
       channels:
-        # - dim_test_run
-        - data-monitoring-mvp
+        - dim_test_run
   tier: tier_1
   partition_field: datetime
   dim_tests:
