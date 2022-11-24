@@ -8,6 +8,7 @@ dim_config:
       channels:
         - dim_test_run
   tier: tier_1
+  partition_field: submission_date
   dim_tests:
     - type: previous_count_avg_within_expected_delta
       params:

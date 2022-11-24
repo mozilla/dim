@@ -10,6 +10,9 @@ WITH CTE AS (
         `{{ project_id }}.{{ dataset }}.INFORMATION_SCHEMA.PARTITIONS`
     WHERE
         table_name = "{{ table }}"
+        # TODO: this sounds like a bad thing
+        # we should probably monitor for this too:
+        AND partition_id <> "__NULL__"
         AND PARSE_DATE('%Y%m%d', partition_id)
             BETWEEN DATE_SUB("{{ params.partition }}", INTERVAL {{ params.days }} + 1 DAY) AND DATE("{{ params.partition }}")
 )

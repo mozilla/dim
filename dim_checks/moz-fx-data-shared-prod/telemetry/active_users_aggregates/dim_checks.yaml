@@ -17,7 +17,6 @@ dim_config:
       params:
         columns:
           - submission_date
-          - first_seen_date
           - first_seen_year
           - app_name
           - app_version
@@ -32,11 +31,6 @@ dim_config:
           - wau
           - mau
           - new_profiles
-    - type: column_length
-      params:
-        columns:
-          - country
-        condition: "= 2"
     - type: column_length
       params:
         columns:

@@ -255,7 +255,7 @@ def run_check(
                 sql=test_sql.replace(
                     "'[[dim_check_sql]]'",
                     "'''"
-                    + test_sql.replace(
+                    + test_sql.replace("\\", "\\\\").replace(
                         "'[[dim_check_sql]]' AS dim_check_sql,", ""
                     )
                     + "'''",
