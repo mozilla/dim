@@ -26,7 +26,6 @@ dim_config:
           - days_seen_session_end_bits
           - durations
           - normalized_channel
-          - normalized_app_name
           - normalized_os
           - normalized_os_version
           - android_sdk_version
@@ -43,7 +42,7 @@ dim_config:
           - first_seen_date
           - is_new_profile
           - isp
-    - type: uniquness
+    - type: uniqueness
       params:
         columns:
           - client_id
@@ -63,20 +62,6 @@ dim_config:
           - Other
           - beta
           - esr
-    - type: value_in_set
-      params:
-        columns:
-          - normalized_app_name
-        expected_values:
-          - Fenix
-          - "Fenix BrowserStack"
-          - "Firefox iOS"
-          - "Firefox iOS BrowserStack"
-          - "Firefox Desktop"
-          - "Focus iOS"
-          - "Focus Android"
-          - "Focus Android Glean"
-          - "Focus Android Glean BrowserStack"
     - type: value_in_set
       params:
         columns:
