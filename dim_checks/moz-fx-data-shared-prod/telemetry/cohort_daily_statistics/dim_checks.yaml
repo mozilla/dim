@@ -2,7 +2,7 @@ dim_config:
   owner:
     email: lvargas@mozilla.com
     slack: lvargas
-  alerts_enabled:
+  slack_alerts:
     enabled: true
     notify:
       channels:
