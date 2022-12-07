@@ -176,7 +176,7 @@ Example:
   params:
     columns:
       - locale
-    regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB
+    regex: ^[a-z]{2}(-[A-Z]{2})?$ # example: en-GB or tr
 ```
 
 _Note_ Due to some issues, as a workaround the regex stored inside `dim_check_context` (`dim_run_history_v1` table) contains double escape characters. Actual regex used only one, so the example above would looks like this in the table: `^\\w{2}-\\w{2}$` instead of `^\w{2}-\w{2}$`.
