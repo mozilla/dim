@@ -4,18 +4,6 @@ from typing import Any, Dict, List
 
 from slack_sdk import WebClient
 
-# from tabulate import tabulate
-
-# def format_and_publish_slack_message(channels):
-# if pd.to_numeric(data.shape[0]) > 0:
-# from tabulate import tabulate
-# df_tab = tabulate(
-#     [list(row) for row in data.values],
-#     headers=list(data.columns),
-#     tablefmt="grid",
-#     stralign="center",
-# )
-
 
 def send_slack_alert(
     channels: List[str],
