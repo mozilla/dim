@@ -6,7 +6,6 @@ from uuid import uuid4
 
 import attr
 import jinja2
-from tabulate import tabulate
 
 from dim.bigquery_client import BigQueryClient
 from dim.const import (
@@ -27,8 +26,6 @@ from dim.utils import (
     is_alert_muted,
     read_config,
 )
-
-# import pandas as pd
 
 
 def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
@@ -92,58 +89,25 @@ def format_failed_check_results(results):
     dataset = results.iloc[0]["dataset"]
     date_partition = results.iloc[0]["date_partition"]
     run_id = results.iloc[0]["run_id"]
-    owner = results.iloc[0]["owner"]
+    owner = json.loads(results.iloc[0]["owner"]).get("slack")
 
-    reduced_results = results.drop(
-        ["dataset", "date_partition", "run_id", "owner"], axis=1, inplace=False
-    )
+    failed_check_types = results["dim_check_type"].to_list()
 
-    # need to limit how much text is shown
-    # by slack otherwise message becomes unreadable.
-    record_value_char_limit = 100
+    formatted_results = dedent(
+        f"""
+            ======================================================================
+            > Dim checks failed :alert:
+            *Table*: `{dataset}` || *Owner*: <@{owner}>
+            *Date Partition*: `{date_partition}` || *run_id*: `{run_id}`
+            *Failed dim checks*: {", ".join([f"`{check}`" for check in failed_check_types])}  # noqa: E501
 
-    truncated_record_values = [
-        {
-            key: f"{value[:record_value_char_limit - 3]}..."
-            if type(value) == str and len(value) > record_value_char_limit
-            else value
-            for key, value in record.items()
-        }
-        for record in reduced_results.to_dict("records")
-    ]
-
-    fail_details_tbl = tabulate(
-        truncated_record_values,
-        headers="keys",
-        tablefmt="psql",
-        stralign="left",
-        maxcolwidths=100,
-    )
-
-    formatted_results = (
-        dedent(
-            f"""
-            :alert: Dim checks failed:
-            table: `{dataset}` | partition: `{date_partition}` | run_id: `{run_id}` | owner: `{owner}`  # noqa: E501
-            """
-        )
-        + fail_details_tbl
-        + dedent(
-            f"""
             > Full context and the query used can be found using this query:
             ```
             SELECT * FROM `{RUN_HISTORY_TABLE}`
-            WHERE run_id = "{run_id}"
-                AND date_partition = DATE("{date_partition}")
+            WHERE run_id = "{run_id}" AND date_partition = DATE("{date_partition}")  # noqa: E501
             ```
-            > Billing and processing information can be accessed using:
-            ```
-            SELECT * FROM `{PROCESSING_INFO_TABLE}`
-            WHERE run_id = "{run_id}"
-                AND date_partition = DATE("{date_partition}")
-            ```
+            > Billing and processing information can be found in the `{PROCESSING_INFO_TABLE}` table.  # noqa: E501
             """
-        )
     )
 
     return formatted_results.replace("  # noqa: E501", "")
