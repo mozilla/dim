@@ -91,7 +91,7 @@ dim_config:
       params:
         columns:
           - locale
-        regex: ^[a-z]{2}-[A-Z]{2}$  # example: en-GB
+        regex:  ^[a-z]{2}(-[A-Z]{2})?$ # example: en-GB or tr
     - type: matches_regex
       params:
         columns:
