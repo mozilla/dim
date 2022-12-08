@@ -37,11 +37,16 @@ dim_config:
           - os_version_major
           - os_version_minor
           - os_version_patch
-    - type: column_length
+    # - type: column_length
+    #   params:
+    #     columns:
+    #       - country
+    #     condition: "= 2"
+    - type: matches_regex
       params:
         columns:
           - country
-        condition: "= 2"
+        regex: ^[A-Z]{2}|\?\?$  # example: GB or ??
     - type: column_length
       params:
         columns:

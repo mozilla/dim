@@ -28,11 +28,16 @@ dim_config:
           - normalized_os_version
           - os_version_major
           - os_version_minor
-    - type: column_length
+    # - type: column_length
+    #   params:
+    #     columns:
+    #       - country
+    #     condition: "= 2"
+    - type: matches_regex
       params:
         columns:
           - country
-        condition: "= 2"
+        regex: ^[A-Z]{2}|\?\?$  # example: GB or ??
     - type: value_in_set
       params:
         columns:
