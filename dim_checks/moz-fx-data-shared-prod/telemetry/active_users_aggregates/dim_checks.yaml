@@ -40,7 +40,7 @@ dim_config:
       params:
         columns:
           - country
-        regex: ^[A-Z]{2}$  # example: GB
+        regex: ^[A-Z]{2}|\?\?$  # example: GB or ??
     - type: value_in_set
       params:
         columns:
