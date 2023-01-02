@@ -164,4 +164,4 @@ cython_debug/
 # for now adding generated_sql/ to list of folder to ignore
 generated_sql/
 # folder containing personal notes
-notes/
+notes/.git/
