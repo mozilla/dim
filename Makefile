@@ -53,6 +53,9 @@ ifneq ($(wildcard venv/.*),)
 else
 	@python -m venv venv
 	@venv/bin/python -m pip install pip-tools
+	@make upgrade-pip
+	@make update-deps
+	@make update-local-env
 endif
 
 upgrade-pip: setup-venv
