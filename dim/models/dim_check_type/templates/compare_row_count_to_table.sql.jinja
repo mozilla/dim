@@ -1,8 +1,18 @@
 {% set other_table = params.table.split('.') %}
 WITH CTE AS (
     SELECT
-        (SELECT COUNT(*) FROM `{{ project_id }}.{{ dataset }}.{{ table }}` WHERE DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')) AS row_count,
-        (SELECT COUNT(*) FROM `{{ params.table }}` WHERE DATE({{ params.table_partition_field }}) = DATE('{{ params.partition }}')) AS {{ other_table[2] }}_row_count,
+        (
+            SELECT {{ params.base_table_custom_count if params.base_table_custom_count else "COUNT(*)" }}
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE DATE({{ params.partition_field }}) = DATE('{{ params.partition }}')
+            {{ "AND " ~ params.base_table_additional_filter if params.base_table_additional_filter else "" }}
+        ) AS row_count,
+        (
+            SELECT {{ params.table_custom_count if params.table_custom_count else "COUNT(*)" }}
+            FROM `{{ params.table }}`
+            WHERE DATE({{ params.table_partition_field }}) = DATE('{{ params.partition }}')
+            {{ "AND " ~ params.table_additional_filter if params.table_additional_filter else "" }}
+        ) AS {{ other_table[2] }}_row_count,
 )
 
 SELECT

@@ -50,9 +50,13 @@ class DimCheckParams:
     expected_delta: Optional[int] = attr.ib(None)
     days: Optional[int] = attr.ib(None)
     enable_alerts_enabled: Optional[bool] = attr.ib(False)
-    table: Optional[str] = attr.ib(None)
     partition_field: Optional[str] = attr.ib(None)
+    base_table_custom_count: Optional[str] = attr.ib(None)
+    base_table_additional_filter: Optional[str] = attr.ib(None)
+    table: Optional[str] = attr.ib(None)
     table_partition_field: Optional[str] = attr.ib(None)
+    table_custom_count: Optional[str] = attr.ib(None)
+    table_additional_filter: Optional[str] = attr.ib(None)
 
 
 @attr.s(auto_attribs=True)
