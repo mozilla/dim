@@ -1,0 +1,128 @@
+dim_config:
+  owner:
+    email: lvargas@mozilla.com
+    slack: lvargas
+  slack_alerts:
+    enabled: true
+    notify:
+      channels:
+        - dim_test_run
+  tier: tier_1
+  partition_field: submission_date
+  dim_tests:
+    # - type: table_row_count
+    #   params:
+    #     condition: ">= 1000"
+    # - type: not_null
+    #   params:
+    #     columns:
+    #       - submission_date
+    #       - first_seen_year
+    #       - app_name
+    #       - app_version
+    #       - channel
+    #       - segment
+    #       - attributed
+    #       - os
+    #       - os_version
+    #       - os_version_major
+    #       - os_version_minor
+    #       - dau
+    #       - wau
+    #       - mau
+    #       - new_profiles
+    # - type: column_length
+    #   params:
+    #     columns:
+    #       - country
+    #     condition: "= 2"
+    # - type: matches_regex
+    #   params:
+    #     columns:
+    #       - country
+    #     regex: ^[A-Z]{2}|\?\?$  # example: GB or ??
+    # - type: value_in_set
+    #   params:
+    #     columns:
+    #       - channel
+    #     expected_values:
+    #       - nightly
+    #       - aurora
+    #       - release
+    #       - Other
+    #       - beta
+    #       - esr
+    # - type: value_in_set
+    #   params:
+    #     columns:
+    #       - segment
+    #     expected_values:
+    #       - casual_user
+    #       - regular_user
+    #       - infrequent_user
+    #       - other
+    #       - core_user
+    # - type: value_in_set
+    #   params:
+    #     columns:
+    #       - app_name
+    #     expected_values:
+    #       - Fenix
+    #       - "Fenix BrowserStack"
+    #       - "Firefox iOS"
+    #       - "Firefox iOS BrowserStack"
+    #       - "Firefox Desktop"
+    #       - "Focus iOS"
+    #       - "Focus Android"
+    #       - "Focus iOS BrowserStack"
+    #       - "Focus Android Glean"
+    #       - "Focus Android Glean BrowserStack"
+    # - type: value_in_set
+    #   params:
+    #     columns:
+    #       - os
+    #     expected_values:
+    #       - iOS
+    #       - Android
+    #       - Linux
+    #       - Linux_CXL
+    #       - Darwin
+    #       - Windows_95
+    #       - Windows_98
+    #       - Windows_NT
+    #       - OpenBSD
+    #       - SunOS
+    #       - HubertOS
+    # - type: matches_regex
+    #   params:
+    #     columns:
+    #       - first_seen_year
+    #     regex: ^\d{4}$  # example: 2020
+    # - type: combined_column_uniqueness
+    #   params:
+    #     columns:
+    #       - submission_date
+    #       - segment
+    #       - app_version
+    #       - attribution_medium
+    #       - attribution_source
+    #       - country
+    #       - city
+    #       - distribution_id
+    #       - is_default_browser
+    #       - app_name
+    #       - channel
+    #       - os
+    #       - os_version
+    #       - os_version_major
+    #       - os_version_minor
+    #       - first_seen_year
+    #       - attributed
+    #       - language_name
+    - type: compare_row_count_to_table
+      params:
+        table: moz-fx-data-shared-prod.telemetry_live.main_v4
+        table_partition_field: submission_timestamp
+        table_custom_count: COUNT(DISTINCT client_id)
+        table_additional_filter: normalized_app_name = 'Firefox' AND document_id IS NOT NULL
+        base_table_custom_count: SUM(dau)
