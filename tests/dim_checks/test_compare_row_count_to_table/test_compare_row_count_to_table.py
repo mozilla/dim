@@ -32,6 +32,7 @@ def test_compare_row_count_to_table():
               params:
                 table: dummy2_project.dummy2_dataset.dummy2_table
                 table_partition_field: submission_date2
+                table_additional_filter: normalized_app_name = 'fx'
         """
     )
 
@@ -56,8 +57,17 @@ def test_compare_row_count_to_table():
         """
         WITH CTE AS (
             SELECT
-                (SELECT COUNT(*) FROM `dummy_project.dummy_dataset.dummy_table` WHERE DATE(submission_date) = DATE('1990-01-01')) AS row_count,  # noqa: E501
-                (SELECT COUNT(*) FROM `dummy2_project.dummy2_dataset.dummy2_table` WHERE DATE(submission_date2) = DATE('1990-01-01')) AS dummy2_table_row_count,  # noqa: E501
+                (
+                    SELECT COUNT(*)
+                    FROM `dummy_project.dummy_dataset.dummy_table`
+                    WHERE DATE(submission_date) = DATE('1990-01-01')
+                ) AS row_count,
+                (
+                    SELECT COUNT(*)
+                    FROM `dummy2_project.dummy2_dataset.dummy2_table`
+                    WHERE DATE(submission_date2) = DATE('1990-01-01')
+        \t\tAND normalized_app_name = 'fx'
+                ) AS dummy2_table_row_count,
         )
 
         SELECT
@@ -78,4 +88,5 @@ def test_compare_row_count_to_table():
             '[[dim_check_sql]]' AS dim_check_sql,
         FROM CTE"""
     )
+
     assert generated_sql == expected_sql.replace("  # noqa: E501", "")

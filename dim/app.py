@@ -202,6 +202,7 @@ def run_check(
             )
 
             dim_check = DIM_CHECK_CLASS_MAPPING[test_type](**table_params)
+
             query_params = prepare_params(
                 *table_params,
                 dim_config=dim_config,
