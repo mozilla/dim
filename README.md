@@ -38,7 +38,7 @@
 │   │       └── [table]
 │   │           └── dim_checks.yaml
 │   └── [project]
-│       └── [table]
+│       └── [dataset]
 │           └── [table]
 │               └── dim_checks.yaml
 ├── docs
@@ -106,7 +106,7 @@ This is a very early stage application and has very limited functionality. Curre
 1. Check corresponding path exists (`dim_checks/[gcp_project]/[dataset]/[table]`).
 1. Validate matching configs on read time (this should be fine since they're very small).
 1. Create corresponding test objects, this includes test execution and success parameters.
-1. Execute all tests and persist results in BQ (can be used to build Looker dashboard on top of this dim exeuction metadata).
+1. Execute all tests and persist results in BQ (can be used to build Looker dashboard on top of this dim execution metadata).
 1. If alerting enabled, alert sent out if any of the tests failed.
 
 # Other TODOs
