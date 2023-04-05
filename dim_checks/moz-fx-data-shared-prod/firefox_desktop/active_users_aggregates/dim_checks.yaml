@@ -126,3 +126,4 @@ dim_config:
         table_custom_count: COUNT(DISTINCT client_id)
         table_additional_filter: normalized_app_name = 'Firefox' AND document_id IS NOT NULL
         base_table_custom_count: SUM(dau)
+        acceptable_delta: 1  # this is because of the less than 15000 row entry filter used in the process of building the aggregates.

@@ -20,7 +20,7 @@ SELECT
     '{{ params.tier }}' AS tier,
     DATE('{{ params.partition }}') AS date_partition,
     '{{ dim_check_type }}' AS dim_check_type,
-    IF(row_count = {{ other_table[2] }}_row_count, True, False) AS passed,
+    IF({% if params.acceptable_delta %}ABS(row_count - {{ other_table[2] }}_row_count) <= {{ params.acceptable_delta }}{% else%}row_count = {{ other_table[2] }}_row_count{% endif %}, True, False) AS passed,
     '{{ params.owner }}' AS owner,
     TO_JSON_STRING(CTE) AS query_results,
     TO_JSON_STRING('{"other_table":"{{ params.table }}", "other_table_partition_field": "{{ params.table_partition_field }}"}') AS dim_check_context,

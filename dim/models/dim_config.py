@@ -57,6 +57,7 @@ class DimCheckParams:
     table_partition_field: Optional[str] = attr.ib(None)
     table_custom_count: Optional[str] = attr.ib(None)
     table_additional_filter: Optional[str] = attr.ib(None)
+    acceptable_delta: Optional[int] = attr.ib(None)
 
 
 @attr.s(auto_attribs=True)
