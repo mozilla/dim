@@ -4,38 +4,31 @@ IMAGE_REPO	   := gcr.io/data-monitoring-dev
 IMAGE_BASE     := dim
 IMAGE_VERSION  := latest-app
 IMAGE_NAME     := $(IMAGE_BASE):$(IMAGE_VERSION)
-IMAGE_TARGET   := app
 
 CONTAINER_NAME := $(IMAGE_BASE)
+PYTHON_ENTRYPOINT := --entrypoint /usr/local/bin/python
 
 .PHONY: build
-build-app: ## Builds final app Docker image
-	@docker build -t ${IMAGE_BASE}:${IMAGE_VERSION} --target=${IMAGE_TARGET} -f Dockerfile .
-
-build-test: ## Builds test Docker image containing all dev requirements
-	@docker build -t ${IMAGE_BASE}:latest-test --target=test -f Dockerfile .
-
-image: build-app
-
-build: update pytest image
+build: ## Builds final app Docker image
+	@docker build -t ${IMAGE_BASE}:${IMAGE_VERSION} -f Dockerfile .
 
 .PHONY: test
-test-unit: build-test ## Builds test Docker image and executes Python tests
-	@docker run ${IMAGE_BASE}:latest-test python -m pytest tests/
+test-unit: build
+	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m pytest tests/
 
-test-black: build-test
-	@docker run ${IMAGE_BASE}:latest-test python -m black --check dim/ tests/
+test-black: build
+	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m black --line-length=100 --check dim/ tests/
 
-test-flake8: build-test
-	@docker run ${IMAGE_BASE}:latest-test python -m flake8 dim/ tests/
+test-flake8: build
+	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m flake8 --max-line-length=100 dim/ tests/
 
-test-isort: build-test
-	@docker run ${IMAGE_BASE}:latest-test python -m isort --check dim/ tests/
+test-isort: build
+	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m isort --check dim/ tests/
 
-test-mypy: build-test
-	@docker run ${IMAGE_BASE}:latest-test python -m mypy dim/ tests/
+test-mypy: build
+	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m mypy dim/ tests/
 
-test-all: build-test test-unit test-flake8 test-isort test-black #test-mypy
+test-all: build test-unit test-flake8 test-isort test-black #test-mypy
 
 format-black:
 	@venv/bin/python -m black dim/ tests/
@@ -87,19 +80,10 @@ make clean:  # Removes local env
 	@rm -rf venv/
 
 
-# # source: https://stackoverflow.com/a/14061796
-# this is to "support" positional args for the add-new-dim-test-type command
-# # If the first argument is "run"...
-# ifeq (add-new-dim-test-type,$(firstword $(MAKECMDGOALS)))
-#   # use the rest as arguments for "run"
-#   TEST_TYPE_NAME := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-#   # ...and turn them into do-nothing targets
-#   $(eval $(TEST_TYPE_NAME):;@:)
-# endif
-
 DIM_CHECKS_FOLDER := dim/models/dim_check_type
 DIM_CHECKS_SQL_FOLDER := $(DIM_CHECKS_FOLDER)/templates
 
+# # source: https://stackoverflow.com/a/14061796
 new-dim-test-type:
 ifndef TEST_TYPE
 	$(error No value provided for TEST_TYPE)
