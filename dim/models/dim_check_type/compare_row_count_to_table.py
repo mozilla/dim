@@ -4,15 +4,13 @@ from dim.models.dim_check_type.base import Base
 
 
 class CompareRowCountToTable(Base):
-    DQ_CHECK_NAME = "compare_row_count_to_table"
-
     def __init__(
         self,
         project_id,
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.DQ_CHECK_NAME)
+        super().__init__(project_id, dataset, table, "compare_row_count_to_table")
 
     def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
         return super().generate_test_sql(params=params)

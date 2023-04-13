@@ -4,15 +4,13 @@ from dim.models.dim_check_type.base import Base
 
 
 class PreviousCountAvgWithinExpectedDelta(Base):
-    DQ_CHECK_NAME = "previous_count_avg_within_expected_delta"
-
     def __init__(
         self,
         project_id,
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.DQ_CHECK_NAME)
+        super().__init__(project_id, dataset, table, "previous_count_avg_within_expected_delta")
 
     def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
         return super().generate_test_sql(params=params)

@@ -4,15 +4,13 @@ from dim.models.dim_check_type.base import Base
 
 
 class ColumnSumNotZero(Base):
-    dim_check_type_NAME = "column_sum_not_zero"
-
     def __init__(
         self,
         project_id,
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.dim_check_type_NAME)
+        super().__init__(project_id, dataset, table, "column_sum_not_zero")
 
     def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
         return super().generate_test_sql(params=params)

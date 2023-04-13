@@ -4,15 +4,13 @@ from dim.models.dim_check_type.base import Base
 
 
 class CustomSqlMetric(Base):
-    dim_check_type_NAME = "custom_sql_metric"
-
     def __init__(
         self,
         project_id,
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.dim_check_type_NAME)
+        super().__init__(project_id, dataset, table, "custom_sql_metric")
 
     def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
         return super().generate_test_sql(params=params)

@@ -4,16 +4,13 @@ from dim.models.dim_check_type.base import Base
 
 
 class ColumnLength(Base):
-    # TODO: could move this directly into the init() call
-    dim_check_type_NAME = "column_length"
-
     def __init__(
         self,
         project_id,
         dataset,
         table,
     ):
-        super().__init__(project_id, dataset, table, self.dim_check_type_NAME)
+        super().__init__(project_id, dataset, table, "column_length")
 
     # TODO: these two functions probably do not need to live here at all
     # they're defined in super() and this just calls super()

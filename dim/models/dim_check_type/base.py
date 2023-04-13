@@ -6,8 +6,6 @@ from jinja2 import Environment, FileSystemLoader
 import dim.const
 from dim.bigquery_client import BigQueryClient
 
-# from dim.utils import check_directory_exists, create_directory, sql_to_file
-
 
 class Base:
     def __init__(
@@ -43,24 +41,6 @@ class Base:
         return sql
 
     def generate_test_sql(self, *, params: Dict[Any, Any]):
-        # generated_sql_folder = Path(
-        #     dim.const.GENERATED_SQL_FOLDER
-        #     + "/"
-        #     + self.project_id
-        #     + "/"
-        #     + self.dataset
-        #     + "/"
-        #     + self.table
-        # )
-
-        # check_directory_exists(generated_sql_folder) or create_directory(
-        #     generated_sql_folder
-        # )
-        #
-        # target_file = generated_sql_folder.joinpath(
-        #     f"{self.dim_check_type}.sql"
-        # )
-
         generated_sql = self.render_sql(
             params={
                 "project_id": self.project_id,
@@ -70,8 +50,6 @@ class Base:
                 "params": params,
             },
         )
-
-        # sql_to_file(target_file=target_file, sql=generated_sql)
 
         return None, generated_sql
 
