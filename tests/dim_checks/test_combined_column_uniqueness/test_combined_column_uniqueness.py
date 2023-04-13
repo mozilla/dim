@@ -3,9 +3,7 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.combined_column_uniqueness import (
-    CombinedColumnUniqueness,
-)
+from dim.models.dim_check_type.combined_column_uniqueness import CombinedColumnUniqueness
 from dim.models.dim_config import DimConfig
 
 
@@ -42,9 +40,7 @@ def test_combined_column_uniqueness():
         """
     )
 
-    dim_config = DimConfig.from_dict(
-        yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
-    )
+    dim_config = DimConfig.from_dict(yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"])
 
     dim_check = CombinedColumnUniqueness(*table.split("."))
     check_params = dim_config.dim_tests[0].params

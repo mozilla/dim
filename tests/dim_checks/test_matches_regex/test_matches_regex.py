@@ -34,9 +34,7 @@ def test_matches_regex():
         """
     )
 
-    dim_config = DimConfig.from_dict(
-        yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
-    )
+    dim_config = DimConfig.from_dict(yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"])
 
     dim_check = MatchesRegex(*table.split("."))
     check_params = dim_config.dim_tests[0].params

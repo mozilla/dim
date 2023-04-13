@@ -5,11 +5,7 @@ import click
 
 from dim.app import run_check
 from dim.const import INPUT_DATE_FORMAT, LOGGING_LEVEL, SOURCE_PROJECT
-from dim.error import (
-    CmdDateInfoNotProvidedException,
-    DateRangeException,
-    DimConfigError,
-)
+from dim.error import CmdDateInfoNotProvidedException, DateRangeException, DimConfigError
 from dim.models.dim_config import DimConfig
 from dim.utils import mute_alerts_for_date, read_config, unmute_alerts_for_date
 
@@ -47,9 +43,7 @@ def cli():
 @cli.command()
 @click.option("--project_id", required=False, type=str, default=SOURCE_PROJECT)
 @click.option("--dataset", required=True, type=str)
-@click.option(
-    "--table", required=True, type=str
-)  # required for now until we add
+@click.option("--table", required=True, type=str)  # required for now until we add
 # support for grabbing all configs in a dataset
 @click.option(
     "--date",
@@ -80,9 +74,7 @@ def run(
 @cli.command()
 @click.option("--project_id", required=False, type=str, default=SOURCE_PROJECT)
 @click.option("--dataset", required=True, type=str)
-@click.option(
-    "--table", required=True, type=str
-)  # required for now until we add support
+@click.option("--table", required=True, type=str)  # required for now until we add support
 # for grabbing all configs in a dataset
 @click.option(
     "--start_date",
@@ -137,9 +129,7 @@ def validate(config_path: str):
 @cli.command()
 @click.option("--project_id", required=False, type=str, default=SOURCE_PROJECT)
 @click.option("--dataset", required=True, type=str)
-@click.option(
-    "--table", required=True, type=str
-)  # required for now until we add support
+@click.option("--table", required=True, type=str)  # required for now until we add support
 # for grabbing all configs in a dataset
 @click.option(
     "--start_date",
@@ -164,7 +154,8 @@ def mute(
     end_date: click.DateTime,
     date: click.DateTime,
 ):
-    if not start_date and not end_date and not date:
+    # TODO: update the other commands with the updated date condition check
+    if not (start_date and end_date) and not date:
         raise CmdDateInfoNotProvidedException(
             """\
             Need to provide a date range using \
@@ -173,24 +164,15 @@ def mute(
             """
         )
 
-    if start_date and end_date:
-        logging.info(
-            "Muting all alerts for %s:%s.%s for date range: %s - %s"
-            % (project_id, dataset, table, start_date, end_date)
-        )
-
-    if not start_date and not end_date:
+    if date:
         start_date = end_date = date
 
-    if not any([start_date, end_date]):
-        raise CmdDateInfoNotProvidedException(
-            """\
-            Please make sure both `--start_date` \
-            and `--end_date` have a date value provided
-            """
-        )
-
     validate_date_range(start_date, end_date)
+
+    logging.info(
+        "Muting all alerts for %s:%s.%s for date range: %s - %s"
+        % (project_id, dataset, table, start_date, end_date)
+    )
 
     date_iteration = start_date
     while date_iteration <= end_date:
@@ -201,9 +183,7 @@ def mute(
 @cli.command()
 @click.option("--project_id", required=False, type=str, default=SOURCE_PROJECT)
 @click.option("--dataset", required=True, type=str)
-@click.option(
-    "--table", required=True, type=str
-)  # required for now until we add support
+@click.option("--table", required=True, type=str)  # required for now until we add support
 # for grabbing all configs in a dataset
 @click.option(
     "--start_date",

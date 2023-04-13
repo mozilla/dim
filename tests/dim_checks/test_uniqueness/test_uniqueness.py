@@ -34,9 +34,7 @@ def test_uniqueness():
         """
     )
 
-    dim_config = DimConfig.from_dict(
-        yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
-    )
+    dim_config = DimConfig.from_dict(yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"])
 
     dim_check = Uniqueness(*table.split("."))
     check_params = dim_config.dim_tests[0].params

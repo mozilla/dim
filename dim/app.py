@@ -20,12 +20,7 @@ from dim.const import (
 from dim.error import DimChecksFailed
 from dim.models.dim_config import DimConfig
 from dim.slack import send_slack_alert
-from dim.utils import (
-    get_all_paths_yaml,
-    get_dim_processing_info_table,
-    is_alert_muted,
-    read_config,
-)
+from dim.utils import get_all_paths_yaml, get_dim_processing_info_table, is_alert_muted, read_config
 
 
 def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
@@ -52,9 +47,7 @@ def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
         )
     )
 
-    bigquery = BigQueryClient(
-        project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
-    )
+    bigquery = BigQueryClient(project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET)
 
     job = bigquery.fetch_results(sql)
 
@@ -62,9 +55,7 @@ def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
 
 
 def insert_dim_processing_info(insert_data):
-    bigquery = BigQueryClient(
-        project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET
-    )
+    bigquery = BigQueryClient(project_id=DESTINATION_PROJECT, dataset=DESTINATION_DATASET)
 
     processing_table = get_dim_processing_info_table()
 
@@ -80,8 +71,7 @@ def insert_dim_processing_info(insert_data):
         logging.error(str(result))
 
     logging.info(
-        "Processing info inserted into: %s for run_id: %s."
-        % (PROCESSING_INFO_TABLE, run_id)
+        "Processing info inserted into: %s for run_id: %s." % (PROCESSING_INFO_TABLE, run_id)
     )
 
 
@@ -174,19 +164,13 @@ def run_check(
         % (*table_param_values, date_partition, run_uuid)
     )
 
-    config_paths = (
-        CONFIG_ROOT_PATH + "/" + project_id + "/" + dataset + "/" + table
-    )
+    config_paths = CONFIG_ROOT_PATH + "/" + project_id + "/" + dataset + "/" + table
 
-    dim_checks_failed = (
-        False  # TODO: hack for now until the unecessary loop is removed.
-    )
+    dim_checks_failed = False  # TODO: hack for now until the unecessary loop is removed.
 
     # TODO: this loop is unecessary
     for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
-        dim_config = DimConfig.from_dict(
-            read_config(config_path=config_path)["dim_config"]
-        )
+        dim_config = DimConfig.from_dict(read_config(config_path=config_path)["dim_config"])
 
         alert_muted = is_alert_muted(*table_param_values, date_partition)
 
@@ -232,12 +216,8 @@ def run_check(
                     "date_partition": date_partition,
                     "dim_check_type": test_type,
                     "run_id": run_uuid,
-                    "total_bytes_billed": processing_info[
-                        "total_bytes_billed"
-                    ],
-                    "total_bytes_processed": processing_info[
-                        "total_bytes_processed"
-                    ],
+                    "total_bytes_billed": processing_info["total_bytes_billed"],
+                    "total_bytes_processed": processing_info["total_bytes_processed"],
                 }
             )
 
@@ -252,17 +232,11 @@ def run_check(
             "Retrieving failed results for %s:%s.%s for date_partition: %s (run_id: %s)"  # noqa: E501
             % (*table_param_values, date_partition, run_uuid)
         )
-        failed_dim_checks = retrieve_failed_dim_checks(
-            *table_param_values, run_uuid
-        )
+        failed_dim_checks = retrieve_failed_dim_checks(*table_param_values, run_uuid)
 
         dim_checks_failed = bool(failed_dim_checks.to_dict("records"))
 
-        if (
-            dim_checks_failed
-            and dim_config.slack_alerts.enabled
-            and not alert_muted
-        ):
+        if dim_checks_failed and dim_config.slack_alerts.enabled and not alert_muted:
             logging.info(
                 "Sending out an alert for %s:%s.%s for date_partition: %s"
                 % (*table_param_values, date_partition)

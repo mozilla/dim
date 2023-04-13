@@ -119,6 +119,9 @@ dim_config:
     #       - first_seen_year
     #       - attributed
     #       - language_name
+    # TODO: specifically for the use case of making a more "complex" table comparison to
+    # enable arbitary sql query to be executed against both table to be compared that returns a numeric
+    # value which can be used to make an evaluation of test passing.
     - type: compare_row_count_to_table
       params:
         table: moz-fx-data-shared-prod.telemetry_live.main_v4

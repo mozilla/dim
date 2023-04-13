@@ -3,9 +3,7 @@ from textwrap import dedent
 import yaml
 
 from dim.app import prepare_params
-from dim.models.dim_check_type.numeric_values_matches import (
-    NumericValueMatches,
-)
+from dim.models.dim_check_type.numeric_values_matches import NumericValueMatches
 from dim.models.dim_config import DimConfig
 
 
@@ -39,9 +37,7 @@ def test_numeric_values_matches():
         """
     )
 
-    dim_config = DimConfig.from_dict(
-        yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"]
-    )
+    dim_config = DimConfig.from_dict(yaml.load(yaml_config, Loader=yaml.Loader)["dim_config"])
 
     dim_check = NumericValueMatches(*table.split("."))
     check_params = dim_config.dim_tests[0].params

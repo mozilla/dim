@@ -7,10 +7,6 @@ __all__ = [
     for f in modules
     if (
         isfile(f)
-        and not (
-            f.endswith("__init__.py")
-            or f.endswith("base.py")
-            or f.endswith("template.py")
-        )
+        and not (f.endswith("__init__.py") or f.endswith("base.py") or f.endswith("template.py"))
     )
 ]

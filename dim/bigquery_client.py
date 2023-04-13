@@ -41,9 +41,7 @@ class BigQueryClient:
         query: str,
         destination_table: Optional[str] = None,
         write_disposition: Optional[bigquery.job.WriteDisposition] = None,
-        schema_update_options: Optional[
-            bigquery.job.SchemaUpdateOption
-        ] = None,
+        schema_update_options: Optional[bigquery.job.SchemaUpdateOption] = None,
         dataset: Optional[str] = None,
     ) -> None:
         """Execute a SQL query and applies the provided parameters."""
@@ -58,12 +56,8 @@ class BigQueryClient:
 
         if destination_table:
             kwargs["destination"] = bq_dataset.table(destination_table)
-            kwargs[
-                "write_disposition"
-            ] = bigquery.job.WriteDisposition.WRITE_APPEND
-            kwargs[
-                "schema_update_options"
-            ] = bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION
+            kwargs["write_disposition"] = bigquery.job.WriteDisposition.WRITE_APPEND
+            kwargs["schema_update_options"] = bigquery.job.SchemaUpdateOption.ALLOW_FIELD_ADDITION
 
         if write_disposition:
             kwargs["write_disposition"] = write_disposition
@@ -71,9 +65,7 @@ class BigQueryClient:
         if not schema_update_options:
             del kwargs["schema_update_options"]
 
-        config = bigquery.job.QueryJobConfig(
-            default_dataset=bq_dataset, **kwargs
-        )
+        config = bigquery.job.QueryJobConfig(default_dataset=bq_dataset, **kwargs)
 
         bq_query_job = self.client.query(query, config)
         result = bq_query_job.result()

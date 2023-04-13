@@ -5,11 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from dim.cli import backfill, mute, run, unmute, validate
-from dim.error import (
-    CmdDateInfoNotProvidedException,
-    DateRangeException,
-    DimConfigError,
-)
+from dim.error import CmdDateInfoNotProvidedException, DateRangeException, DimConfigError
 
 
 @pytest.fixture
@@ -50,9 +46,7 @@ def test_backfill(
     expected_exit_code,
     expected_exception,
 ):
-    cmd_args = "--project_id={} --dataset={} --table={}".format(
-        *backfill_settings
-    )
+    cmd_args = "--project_id={} --dataset={} --table={}".format(*backfill_settings)
     cmd_args += f" --start_date={start}" if start else ""
     cmd_args += f" --end_date={end}" if end else ""
 
@@ -138,9 +132,7 @@ def test_run(
         ("tests/cli/test_configs/missing_tier.yaml", 1, DimConfigError),
     ],
 )
-def test_validate(
-    runner, input_config, expected_exit_code, expected_exception
-):
+def test_validate(runner, input_config, expected_exit_code, expected_exception):
     result = runner.invoke(validate, [input_config])
 
     actual_exit_code = result.exit_code

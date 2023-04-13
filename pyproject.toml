@@ -47,11 +47,11 @@ build-backend = "setuptools.build_meta"
 py-modules = ["dim"]
 
 [tool.black]
-line-length = 79
+line-length = 100
 target-version = ['py310',]
 include = '\.pyi?$'
 
 [tool.isort]
 atomic = true
 profile = "black"
-line_length = 79
+line_length = 100

@@ -36,9 +36,7 @@ class Base:
 
         templateLoader = FileSystemLoader(dim.const.TEMPLATES_LOC)
         templateEnv = Environment(loader=templateLoader)
-        template = templateEnv.get_template(
-            self.dim_check_type + dim.const.TEMPLATE_FILE_EXTENSION
-        )
+        template = templateEnv.get_template(self.dim_check_type + dim.const.TEMPLATE_FILE_EXTENSION)
 
         sql = template.render({**params})
 

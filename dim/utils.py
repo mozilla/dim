@@ -100,10 +100,7 @@ def mute_alerts_for_date(
     table: str,
     date: Any,
 ):
-    logging.info(
-        "Muting alerts for %s:%s.%s for date: %s"
-        % (project_id, dataset, table, date)
-    )
+    logging.info("Muting alerts for %s:%s.%s for date: %s" % (project_id, dataset, table, date))
 
     bigquery = BigQueryClient(
         project_id=dim.const.DESTINATION_PROJECT,
@@ -112,8 +109,7 @@ def mute_alerts_for_date(
 
     if is_alert_muted(project_id, dataset, table, date):
         logging.info(
-            "Alerts already muted for %s:%s.%s for date: %s"
-            % (project_id, dataset, table, date)
+            "Alerts already muted for %s:%s.%s for date: %s" % (project_id, dataset, table, date)
         )
         return
 
@@ -148,10 +144,7 @@ def unmute_alerts_for_date(
     table: str,
     date: Any,
 ):
-    logging.info(
-        "Unmuting alerts for %s:%s.%s for date: %s"
-        % (project_id, dataset, table, date)
-    )
+    logging.info("Unmuting alerts for %s:%s.%s for date: %s" % (project_id, dataset, table, date))
 
     bigquery = BigQueryClient(
         project_id=dim.const.DESTINATION_PROJECT,
@@ -221,7 +214,6 @@ def unmute_alerts_for_date(
 
 
 def get_all_paths_yaml(extension: str, config_root_path: str) -> List[str]:
-
     result = []
     for root, _, files in os.walk(config_root_path):
         for file in files:
