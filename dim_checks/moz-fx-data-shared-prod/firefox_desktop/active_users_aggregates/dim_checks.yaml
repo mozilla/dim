@@ -6,7 +6,7 @@ dim_config:
     enabled: true
     notify:
       channels:
-        - dim_test_run
+        - kpi-monitoring-dim
   tier: tier_1
   partition_field: submission_date
   dim_tests:
@@ -14,6 +14,7 @@ dim_config:
       params:
         condition: dau_sum = distinct_client_count
         # alert_message: TODO  # TODO: should we be able to specify a specific message in the config?
+        # or maybe description? which then could be shared in slack?
         # TODO: metric should be a list rather than a map
         # to enable us an arbitary number of metrics in the comparison
         metric_1:
@@ -65,7 +66,7 @@ dim_config:
                     payload.simple_measurements.active_ticks
                   )) AS active_ticks
               FROM
-                  `telemetry_live.main_v4`
+                  `{{ project_id }}.telemetry_live.main_v4`
               WHERE
                 DATE(submission_timestamp) = "{{ params.partition }}"
                 AND normalized_app_name = 'Firefox'
