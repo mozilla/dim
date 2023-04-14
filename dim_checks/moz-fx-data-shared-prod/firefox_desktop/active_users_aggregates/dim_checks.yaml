@@ -10,123 +10,98 @@ dim_config:
   tier: tier_1
   partition_field: submission_date
   dim_tests:
-    # - type: table_row_count
-    #   params:
-    #     condition: ">= 1000"
-    # - type: not_null
-    #   params:
-    #     columns:
-    #       - submission_date
-    #       - first_seen_year
-    #       - app_name
-    #       - app_version
-    #       - channel
-    #       - segment
-    #       - attributed
-    #       - os
-    #       - os_version
-    #       - os_version_major
-    #       - os_version_minor
-    #       - dau
-    #       - wau
-    #       - mau
-    #       - new_profiles
-    # - type: column_length
-    #   params:
-    #     columns:
-    #       - country
-    #     condition: "= 2"
-    # - type: matches_regex
-    #   params:
-    #     columns:
-    #       - country
-    #     regex: ^[A-Z]{2}|\?\?$  # example: GB or ??
-    # - type: value_in_set
-    #   params:
-    #     columns:
-    #       - channel
-    #     expected_values:
-    #       - nightly
-    #       - aurora
-    #       - release
-    #       - Other
-    #       - beta
-    #       - esr
-    # - type: value_in_set
-    #   params:
-    #     columns:
-    #       - segment
-    #     expected_values:
-    #       - casual_user
-    #       - regular_user
-    #       - infrequent_user
-    #       - other
-    #       - core_user
-    # - type: value_in_set
-    #   params:
-    #     columns:
-    #       - app_name
-    #     expected_values:
-    #       - Fenix
-    #       - "Fenix BrowserStack"
-    #       - "Firefox iOS"
-    #       - "Firefox iOS BrowserStack"
-    #       - "Firefox Desktop"
-    #       - "Focus iOS"
-    #       - "Focus Android"
-    #       - "Focus iOS BrowserStack"
-    #       - "Focus Android Glean"
-    #       - "Focus Android Glean BrowserStack"
-    # - type: value_in_set
-    #   params:
-    #     columns:
-    #       - os
-    #     expected_values:
-    #       - iOS
-    #       - Android
-    #       - Linux
-    #       - Linux_CXL
-    #       - Darwin
-    #       - Windows_95
-    #       - Windows_98
-    #       - Windows_NT
-    #       - OpenBSD
-    #       - SunOS
-    #       - HubertOS
-    # - type: matches_regex
-    #   params:
-    #     columns:
-    #       - first_seen_year
-    #     regex: ^\d{4}$  # example: 2020
-    # - type: combined_column_uniqueness
-    #   params:
-    #     columns:
-    #       - submission_date
-    #       - segment
-    #       - app_version
-    #       - attribution_medium
-    #       - attribution_source
-    #       - country
-    #       - city
-    #       - distribution_id
-    #       - is_default_browser
-    #       - app_name
-    #       - channel
-    #       - os
-    #       - os_version
-    #       - os_version_major
-    #       - os_version_minor
-    #       - first_seen_year
-    #       - attributed
-    #       - language_name
-    # TODO: specifically for the use case of making a more "complex" table comparison to
-    # enable arbitary sql query to be executed against both table to be compared that returns a numeric
-    # value which can be used to make an evaluation of test passing.
-    - type: compare_row_count_to_table
+    - type: custom_compare_metrics
       params:
-        table: moz-fx-data-shared-prod.telemetry_live.main_v4
-        table_partition_field: submission_timestamp
-        table_custom_count: COUNT(DISTINCT client_id)
-        table_additional_filter: normalized_app_name = 'Firefox' AND document_id IS NOT NULL
-        base_table_custom_count: SUM(dau)
-        acceptable_delta: 1  # this is because of the less than 15000 row entry filter used in the process of building the aggregates.
+        condition: dau_sum = distinct_client_count
+        # alert_message: TODO  # TODO: should we be able to specify a specific message in the config?
+        # TODO: metric should be a list rather than a map
+        # to enable us an arbitary number of metrics in the comparison
+        metric_1:
+          name: dau_sum
+          query: |
+            SELECT SUM(dau),
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE submission_date = "{{ params.partition }}"
+        metric_2:
+          name: distinct_client_count
+          query: |
+            WITH base AS (
+              SELECT client_id
+              FROM `{{ project_id }}.telemetry_live.main_v4`
+              WHERE
+                DATE(submission_timestamp) = "{{ params.partition }}"
+                AND normalized_app_name = 'Firefox'
+                AND document_id IS NOT NULL
+            ),
+            overactive AS (
+              SELECT client_id
+              FROM base
+              GROUP BY client_id
+              HAVING COUNT(*) > 150000
+            )
+            SELECT COUNT(DISTINCT client_id),
+            FROM base
+            FULL OUTER JOIN overactive USING(client_id)
+            WHERE overactive.client_id IS NULL
+    - type: custom_compare_metrics
+      params:
+        condition: qdau_sum = live_table_dau_count
+        metric_1:
+          name: qdau_sum
+          query: |
+            SELECT SUM(qdau),
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE submission_date = "{{ params.partition }}"
+        metric_2:
+          name: live_table_dau_count
+          query: |
+            WITH base AS (
+              SELECT
+                client_id,
+                SUM(payload.processes.parent.scalars.browser_engagement_total_uri_count_normal_and_private_mode) AS scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum,
+                SUM(payload.processes.parent.scalars.browser_engagement_total_uri_count) AS scalar_parent_browser_engagement_total_uri_count_sum,
+                SUM(COALESCE(
+                    payload.processes.parent.scalars.browser_engagement_active_ticks,
+                    payload.simple_measurements.active_ticks
+                  )) AS active_ticks
+              FROM
+                  `telemetry_live.main_v4`
+              WHERE
+                DATE(submission_timestamp) = "{{ params.partition }}"
+                AND normalized_app_name = 'Firefox'
+                AND document_id IS NOT NULL
+              GROUP BY
+                client_id
+            ),
+            overactive AS (
+              SELECT
+                client_id
+              FROM
+                base
+              GROUP BY
+                client_id
+              HAVING
+                COUNT(*) > 150000
+            ),
+            client_summary AS (
+              SELECT
+                client_id,
+                SUM(COALESCE(
+                  scalar_parent_browser_engagement_total_uri_count_normal_and_private_mode_sum,
+                  scalar_parent_browser_engagement_total_uri_count_sum
+                )) AS total_uri_count,
+                SUM(active_ticks / (3600 / 5)) AS active_hours_sum,
+              FROM
+                base
+              LEFT JOIN
+                overactive
+              USING
+                (client_id)
+              WHERE
+                overactive.client_id IS NULL
+              GROUP BY
+                client_id
+            )
+
+            SELECT COUNTIF(active_hours_sum > 0 AND total_uri_count > 0)
+            FROM client_summary
