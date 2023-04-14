@@ -46,7 +46,7 @@ dim_config:
             WHERE overactive.client_id IS NULL
     - type: custom_compare_metrics
       params:
-        condition: qdau_sum = live_table_dau_count
+        condition: qdau_sum = live_table_qdau_count
         metric_1:
           name: qdau_sum
           query: |
@@ -54,7 +54,7 @@ dim_config:
             FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
             WHERE submission_date = "{{ params.partition }}"
         metric_2:
-          name: live_table_dau_count
+          name: live_table_qdau_count
           query: |
             WITH base AS (
               SELECT
