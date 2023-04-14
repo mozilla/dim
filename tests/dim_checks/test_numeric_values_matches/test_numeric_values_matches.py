@@ -50,7 +50,7 @@ def test_numeric_values_matches():
         run_uuid="unit_test_run",
         date_partition="1970-01-01",
     )
-    _, generated_sql = dim_check.generate_test_sql(params=query_params)
+    generated_sql = dim_check.generate_test_sql(params=query_params)
 
     expected_sql = dedent(
         """\
@@ -64,7 +64,7 @@ def test_numeric_values_matches():
         SELECT
             'desination_project' AS project_id,
             'destination_dataset' AS dataset,
-            'destination_table' AS table,
+            'destination_table' AS `table`,
             'tier_3' AS tier,
             DATE('1970-01-01') AS date_partition,
             'numeric_values_matches' AS dim_check_type,

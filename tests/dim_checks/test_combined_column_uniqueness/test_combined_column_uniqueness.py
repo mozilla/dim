@@ -53,7 +53,7 @@ def test_combined_column_uniqueness():
         run_uuid="unit_test_run",
         date_partition="1970-01-01",
     )
-    _, generated_sql = dim_check.generate_test_sql(params=query_params)
+    generated_sql = dim_check.generate_test_sql(params=query_params)
 
     expected_sql = dedent(
         """\
@@ -68,7 +68,7 @@ def test_combined_column_uniqueness():
         SELECT
             'dummy_project' AS project_id,
             'dummy_dataset' AS dataset,
-            'dummy_table' AS table,
+            'dummy_table' AS `table`,
             'tier_3' AS tier,
             DATE('1970-01-01') AS date_partition,
             'combined_column_uniqueness' AS dim_check_type,

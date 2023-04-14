@@ -49,7 +49,7 @@ def test_custom_sql():
         run_uuid="unit_test_run",
         date_partition="1990-01-01",
     )
-    _, generated_sql = dim_check.generate_test_sql(params=query_params)
+    generated_sql = dim_check.generate_test_sql(params=query_params)
 
     expected_sql = dedent(
         """\
@@ -62,7 +62,7 @@ def test_custom_sql():
       SELECT
           'dummy_project' AS project_id,
           'dummy_dataset' AS dataset,
-          'dummy_table' AS table,
+          'dummy_table' AS `table`,
           'tier_2' AS tier,
           'custom_sql_metric' AS dim_check_type,
           DATE('1990-01-01') AS date_partition,

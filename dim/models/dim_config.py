@@ -24,6 +24,14 @@ class SlackAlertConfig:
 
 
 @attr.s(auto_attribs=True)
+class Metric:
+    """ """
+
+    name: str
+    query: str
+
+
+@attr.s(auto_attribs=True)
 class Owner:
     """ """
 
@@ -58,6 +66,12 @@ class DimCheckParams:
     table_custom_count: Optional[str] = attr.ib(None)
     table_additional_filter: Optional[str] = attr.ib(None)
     acceptable_delta: Optional[int] = attr.ib(None)
+    metric_1: Optional[Metric] = attr.ib(None)
+    metric_2: Optional[Metric] = attr.ib(None)
+    # metric_name_1: Optional[str] = attr.ib(None)
+    # metric_query_1: Optional[str] = attr.ib(None)
+    # metric_name_2: Optional[str] = attr.ib(None)
+    # metric_query_2: Optional[str] = attr.ib(None)
 
 
 @attr.s(auto_attribs=True)

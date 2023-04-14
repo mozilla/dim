@@ -196,7 +196,7 @@ def run_check(
                 date_partition=date_partition,
             )
 
-            _, test_sql = dim_check.generate_test_sql(
+            test_sql = dim_check.generate_test_sql(
                 params=query_params,
             )
 

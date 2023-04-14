@@ -1,7 +1,7 @@
 # from pathlib import Path
 from typing import Any, Dict
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import BaseLoader, Environment, FileSystemLoader
 
 import dim.const
 from dim.bigquery_client import BigQueryClient
@@ -41,17 +41,18 @@ class Base:
         return sql
 
     def generate_test_sql(self, *, params: Dict[Any, Any]):
-        generated_sql = self.render_sql(
-            params={
-                "project_id": self.project_id,
-                "dataset": self.dataset,
-                "table": self.table,
-                "dim_check_type": self.dim_check_type,
-                "params": params,
-            },
-        )
+        render_params = {
+            "project_id": self.project_id,
+            "dataset": self.dataset,
+            "table": self.table,
+            "dim_check_type": self.dim_check_type,
+            "params": params,
+        }
 
-        return None, generated_sql
+        generated_sql = self.render_sql(params=render_params)
+
+        # re-rendering so that custom sql passed through can also support params
+        return Environment(loader=BaseLoader).from_string(generated_sql).render(render_params)
 
     def execute_test_sql(self, sql):
         return self.bigquery.execute(

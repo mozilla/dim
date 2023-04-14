@@ -28,6 +28,9 @@ DIM_CHECK_CLASS_MAPPING = {
         compare_row_count_to_table, "CompareRowCountToTable"  # noqa: F405
     ),
     "column_sum_not_zero": getattr(column_sum_not_zero, "ColumnSumNotZero"),  # noqa: F405
+    "custom_compare_metrics": getattr(
+        custom_compare_metrics, "CustomCompareMetrics"  # noqa: F405
+    ),
 }
 
 

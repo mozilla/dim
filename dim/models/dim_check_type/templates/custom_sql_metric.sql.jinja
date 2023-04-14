@@ -5,7 +5,7 @@ WITH CTE AS (
 SELECT
     '{{ project_id }}' AS project_id,
     '{{ dataset }}' AS dataset,
-    '{{ table }}' AS table,
+    '{{ table }}' AS `table`,
     '{{ params.tier }}' AS tier,
     '{{ dim_check_type }}' AS dim_check_type,
     DATE('{{ params.partition }}') AS date_partition,
