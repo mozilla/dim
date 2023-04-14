@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Build Image
           command: |
-            make build-app
+            make build
   test-unit:
     docker: *docker
     steps:

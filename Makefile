@@ -2,7 +2,7 @@
 
 IMAGE_REPO	   := gcr.io/data-monitoring-dev
 IMAGE_BASE     := dim
-IMAGE_VERSION  := latest-app
+IMAGE_VERSION  := latest
 IMAGE_NAME     := $(IMAGE_BASE):$(IMAGE_VERSION)
 
 CONTAINER_NAME := $(IMAGE_BASE)
