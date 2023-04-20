@@ -23,5 +23,3 @@ RUN python -m pip install --no-cache-dir .
 
 COPY dim_checks/ dim_checks
 COPY tests/ tests
-
-ENTRYPOINT ["dim"]

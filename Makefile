@@ -6,7 +6,6 @@ IMAGE_VERSION  := latest
 IMAGE_NAME     := $(IMAGE_BASE):$(IMAGE_VERSION)
 
 CONTAINER_NAME := $(IMAGE_BASE)
-PYTHON_ENTRYPOINT := --entrypoint /usr/local/bin/python
 
 .PHONY: build
 build: ## Builds final app Docker image
@@ -14,24 +13,24 @@ build: ## Builds final app Docker image
 
 .PHONY: test
 test-unit: build
-	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m pytest tests/
+	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m pytest tests/
 
 test-black: build
-	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m black --line-length=100 --check dim/ tests/
+	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m black --line-length=100 --check dim/ tests/
 
 test-flake8: build
-	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m flake8 --max-line-length=100 dim/ tests/
+	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m flake8 --max-line-length=100 dim/ tests/
 
 test-isort: build
-	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m isort --check dim/ tests/
+	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m isort --check dim/ tests/
 
 test-mypy: build
-	@docker run ${PYTHON_ENTRYPOINT} ${IMAGE_BASE}:${IMAGE_VERSION} -m mypy dim/ tests/
+	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m mypy dim/ tests/
 
 test-all: build test-unit test-flake8 test-isort test-black #test-mypy
 
 format-black:
-	@venv/bin/python -m black dim/ tests/
+	@venv/bin/python python -m black dim/ tests/
 
 format-isort:
 	@venv/bin/isort dim/ tests/
@@ -44,15 +43,15 @@ ifneq ($(wildcard venv/.*),)
 	@echo "venv/ directory already exists to setup venv from scratch"
 	@echo "run 'make clean' then re-run this command"
 else
-	@python -m venv venv
-	@venv/bin/python -m pip install pip-tools
+	@python python -m venv venv
+	@venv/bin/python python -m pip install pip-tools
 	@make upgrade-pip
 	@make update-deps
 	@make update-local-env
 endif
 
 upgrade-pip: setup-venv
-	@venv/bin/python -m pip install --upgrade pip
+	@venv/bin/python python -m pip install --upgrade pip
 
 @PHONY: pip-compile
 pip-compile:
@@ -68,9 +67,9 @@ pip-compile-dev:
 	@venv/bin/pip-compile --generate-hashes -o requirements/dev-requirements.txt requirements/dev-requirements.in
 
 install-requirements: setup-venv upgrade-pip pip-compile
-	@venv/bin/python -m pip install -r requirements/requirements.txt
+	@venv/bin/python python -m pip install -r requirements/requirements.txt
 install-requirements-dev: setup-venv upgrade-pip pip-compile-dev
-	@venv/bin/python -m pip install -r requirements/dev-requirements.txt
+	@venv/bin/python python -m pip install -r requirements/dev-requirements.txt
 
 update-deps: pip-compile pip-compile-dev
 update-local-env: install-requirements install-requirements-dev
