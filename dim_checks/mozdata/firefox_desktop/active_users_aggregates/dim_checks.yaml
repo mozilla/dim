@@ -28,7 +28,7 @@ dim_config:
           query: |
             WITH base AS (
               SELECT client_id
-              FROM `{{ project_id }}.telemetry_live.main_v4`
+              FROM `moz-fx-data-shared-prod.telemetry_live.main_v4`
               WHERE
                 DATE(submission_timestamp) = "{{ params.partition }}"
                 AND normalized_app_name = 'Firefox'
@@ -66,7 +66,7 @@ dim_config:
                     payload.simple_measurements.active_ticks
                   )) AS active_ticks
               FROM
-                  `{{ project_id }}.telemetry_live.main_v4`
+                  `moz-fx-data-shared-prod.telemetry_live.main_v4`
               WHERE
                 DATE(submission_timestamp) = "{{ params.partition }}"
                 AND normalized_app_name = 'Firefox'
@@ -102,7 +102,20 @@ dim_config:
                 overactive.client_id IS NULL
               GROUP BY
                 client_id
+            ),
+            last_seen AS (
+              SELECT
+                client_id,
+                days_since_seen,
+              FROM `moz-fx-data-shared-prod.telemetry.clients_last_seen`
+              WHERE
+                submission_date = "{{ params.partition }}"
             )
-
-            SELECT COUNTIF(active_hours_sum > 0 AND total_uri_count > 0)
-            FROM client_summary
+            SELECT
+              COUNTIF(
+                active_hours_sum > 0 AND total_uri_count > 0 AND days_since_seen = 0
+              )
+            FROM
+              client_summary
+            LEFT JOIN last_seen
+              USING(client_id)
