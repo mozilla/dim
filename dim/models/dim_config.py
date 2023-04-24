@@ -21,6 +21,7 @@ class SlackAlertConfig:
 
     enabled: bool = attr.ib()
     notify: SlackEntities = attr.ib()
+    notification_level: str = attr.ib(default="ERROR")
 
 
 @attr.s(auto_attribs=True)
@@ -80,6 +81,7 @@ class DimCheck:
 
     type: str = attr.ib()
     params: DimCheckParams
+    description: Optional[str] = attr.ib(None)
 
     @type.validator
     def validate_type(self, attribute, value):

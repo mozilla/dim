@@ -9,8 +9,9 @@ class ColumnLength(Base):
         project_id,
         dataset,
         table,
+        dim_check_description="Checking that the number of characters matches our expectations.",
     ):
-        super().__init__(project_id, dataset, table, "column_length")
+        super().__init__(project_id, dataset, table, dim_check_type="column_length", dim_check_description=dim_check_description)
 
     # TODO: these two functions probably do not need to live here at all
     # they're defined in super() and this just calls super()

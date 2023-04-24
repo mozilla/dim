@@ -14,11 +14,13 @@ class Base:
         dataset: str,
         table: str,
         dim_check_type: str,
+        dim_check_description: str,
     ):
         self.project_id = project_id
         self.dataset = dataset
         self.table = table
         self.dim_check_type = dim_check_type
+        self.dim_check_description = dim_check_description
 
     @property
     def bigquery(self):
@@ -46,6 +48,7 @@ class Base:
             "dataset": self.dataset,
             "table": self.table,
             "dim_check_type": self.dim_check_type,
+            "dim_check_description": self.dim_check_description,
             "params": params,
         }
 

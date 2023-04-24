@@ -25,6 +25,7 @@ def get_dim_processing_info_table():
         SchemaField(name="dataset", field_type="STRING"),
         SchemaField(name="table", field_type="STRING"),
         SchemaField(name="dim_check_type", field_type="STRING"),
+        SchemaField(name="dim_check_description", field_type="STRING"),
         SchemaField(name="date_partition", field_type="DATE"),
         SchemaField(name="run_id", field_type="STRING"),
         SchemaField(name="total_bytes_billed", field_type="INTEGER"),
@@ -213,18 +214,18 @@ def unmute_alerts_for_date(
 #     return True
 
 
-def get_all_paths_yaml(extension: str, config_root_path: str) -> List[str]:
-    result = []
-    for root, _, files in os.walk(config_root_path):
-        for file in files:
-            if extension in file:
-                result.append(os.path.join(root, file))
+# def get_all_paths_yaml(extension: str, config_root_path: str) -> List[str]:
+#     result = []
+#     for root, _, files in os.walk(config_root_path):
+#         for file in files:
+#             if extension in file:
+#                 result.append(os.path.join(root, file))
 
-    if not result:
-        logging.info("No config files found !")
-        # TODO: raise exception?
+#     if not result:
+#         logging.info("No config files found !")
+#         # TODO: raise exception?
 
-    return result
+#     return result
 
 
 def read_config(config_path: str) -> Dict[Any, Any]:

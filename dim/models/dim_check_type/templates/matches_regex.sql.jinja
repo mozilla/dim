@@ -13,6 +13,7 @@ SELECT
     '{{ params.tier }}' AS tier,
     DATE('{{ params.partition }}') AS date_partition,
     '{{ dim_check_type }}' AS dim_check_type,
+  '{{ dim_check_description }}' AS dim_check_description,
     IF({% for column in params.columns %}{{ column }}_regex_mismatch_count{{ "" if loop.last else " + " }}{% endfor %} = 0, True, False) AS passed,
     """{{ params.owner }}""" AS owner,
     TO_JSON_STRING(CTE) AS query_results,

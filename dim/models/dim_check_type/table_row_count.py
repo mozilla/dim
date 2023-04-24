@@ -9,8 +9,9 @@ class TableRowCount(Base):
         project_id,
         dataset,
         table,
+        dim_check_description="Checking if the row count in the table is as expected."
     ):
-        super().__init__(project_id, dataset, table, "table_row_count")
+        super().__init__(project_id, dataset, table, dim_check_type="table_row_count", dim_check_description=dim_check_description)
 
     def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
         return super().generate_test_sql(params=params)

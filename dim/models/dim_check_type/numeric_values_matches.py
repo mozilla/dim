@@ -9,8 +9,9 @@ class NumericValueMatches(Base):
         project_id,
         dataset,
         table,
+        dim_check_description="",
     ):
-        super().__init__(project_id, dataset, table, "numeric_values_matches")
+        super().__init__(project_id, dataset, table, dim_check_type="numeric_values_matches", dim_check_description=dim_check_description)
 
     def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
         return super().generate_test_sql(params=params)

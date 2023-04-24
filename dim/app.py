@@ -3,13 +3,14 @@ import logging
 from datetime import datetime
 from textwrap import dedent
 from uuid import uuid4
+from enum import Enum
 
 import attr
 import jinja2
 
 from dim.bigquery_client import BigQueryClient
 from dim.const import (
-    CONFIG_EXTENSION,
+    CONFIG_FILENAME,
     CONFIG_ROOT_PATH,
     DESTINATION_DATASET,
     DESTINATION_PROJECT,
@@ -19,29 +20,31 @@ from dim.const import (
 )
 from dim.error import DimChecksFailed
 from dim.models.dim_config import DimConfig
-from dim.slack import send_slack_alert
-from dim.utils import get_all_paths_yaml, get_dim_processing_info_table, is_alert_muted, read_config
+from dim.slack import send_slack_alert, format_slack_notification
+from dim.utils import get_dim_processing_info_table, is_alert_muted, read_config
 
 
-def retrieve_failed_dim_checks(project_id, dataset, table, run_uuid):
+def retrieve_dim_checks(project_id, dataset, table, run_uuid, failed_only=True):
     sql = dedent(
         f"""
         SELECT
             CONCAT(project_id, '.', dataset, '.', table) AS dataset,
             dim_check_type,
+            dim_check_description,
             FORMAT_DATE("%Y-%m-%d %H:%M:%S", actual_run_date) AS actual_run_date,  # noqa: E501
             date_partition,
             owner,
             query_results,
             dim_check_context,
             run_id,
+            passed,
         FROM `{RUN_HISTORY_TABLE}`
         WHERE
             project_id = '{project_id}'
             AND dataset = '{dataset}'
             AND table = '{table}'
             AND run_id = '{run_uuid}'
-            AND NOT passed
+            {"AND NOT passed" if failed_only else ""}
         """.replace(
             "  # noqa: E501", ""
         )
@@ -73,34 +76,6 @@ def insert_dim_processing_info(insert_data):
     logging.info(
         "Processing info inserted into: %s for run_id: %s." % (PROCESSING_INFO_TABLE, run_id)
     )
-
-
-def format_failed_check_results(results):
-    dataset = results.iloc[0]["dataset"]
-    date_partition = results.iloc[0]["date_partition"]
-    run_id = results.iloc[0]["run_id"]
-    owner = json.loads(results.iloc[0]["owner"]).get("slack")
-
-    failed_check_types = results["dim_check_type"].to_list()
-
-    formatted_results = dedent(
-        f"""
-            ======================================================================
-            > Dim checks failed :alert:
-            *Table*: `{dataset}` || *Owner*: <@{owner}>
-            *Date Partition*: `{date_partition}` || *run_id*: `{run_id}`
-            *Failed dim checks*: {", ".join([f"`{check}`" for check in failed_check_types])}  # noqa: E501
-
-            > Full context and the query used can be found using this query:
-            ```
-            SELECT * FROM `{RUN_HISTORY_TABLE}`
-            WHERE run_id = "{run_id}" AND date_partition = DATE("{date_partition}")  # noqa: E501
-            ```
-            > Billing and processing information can be found in the `{PROCESSING_INFO_TABLE}` table.  # noqa: E501
-            """
-    )
-
-    return formatted_results.replace("  # noqa: E501", "")
 
 
 def prepare_params(
@@ -148,7 +123,6 @@ def run_check(
     fail_process_on_failure: bool = False,
 ):
     run_uuid = str(uuid4())
-
     date_partition = date.date()
 
     table_params = {
@@ -156,7 +130,6 @@ def run_check(
         "dataset": dataset,
         "table": table,
     }
-
     table_param_values = table_params.values()
 
     logging.info(
@@ -164,96 +137,98 @@ def run_check(
         % (*table_param_values, date_partition, run_uuid)
     )
 
-    config_paths = CONFIG_ROOT_PATH + "/" + project_id + "/" + dataset + "/" + table
+    config_path = f"{CONFIG_ROOT_PATH}/{project_id}/{dataset}/{table}/{CONFIG_FILENAME}"
+    # TODO: add a check to make sure the config file exists
 
-    dim_checks_failed = False  # TODO: hack for now until the unecessary loop is removed.
+    dim_config = DimConfig.from_dict(read_config(config_path=config_path)["dim_config"])
 
-    # TODO: this loop is unecessary
-    for config_path in get_all_paths_yaml(CONFIG_EXTENSION, config_paths):
-        dim_config = DimConfig.from_dict(read_config(config_path=config_path)["dim_config"])
+    # TODO: fix the alert level setting
+    notification_level = dim_config.slack_alerts.notification_level
+    alert_muted = is_alert_muted(*table_param_values, date_partition)
 
-        alert_muted = is_alert_muted(*table_param_values, date_partition)
+    table_processing_info = list()
 
-        table_processing_info = list()
-
-        # TODO: test execution could technically be taking place in parallel
-        for dim_test in dim_config.dim_tests:
-            test_type = dim_test.type
-
-            logging.info(
-                "Running %s check on %s:%s.%s for date_partition: %s"
-                % (test_type, *table_param_values, date_partition)
-            )
-
-            dim_check = DIM_CHECK_CLASS_MAPPING[test_type](**table_params)
-
-            query_params = prepare_params(
-                *table_params,
-                dim_config=dim_config,
-                alert_muted=alert_muted,
-                check_params=dim_test.params,
-                run_uuid=run_uuid,
-                date_partition=date_partition,
-            )
-
-            test_sql = dim_check.generate_test_sql(
-                params=query_params,
-            )
-
-            _, processing_info = dim_check.execute_test_sql(
-                sql=test_sql.replace(
-                    "'[[dim_check_sql]]'",
-                    "'''"
-                    + test_sql.replace("\\", "\\\\").replace(
-                        "'[[dim_check_sql]]' AS dim_check_sql,", ""
-                    )
-                    + "'''",
-                )
-            )
-            table_processing_info.append(
-                {
-                    **table_params,
-                    "date_partition": date_partition,
-                    "dim_check_type": test_type,
-                    "run_id": run_uuid,
-                    "total_bytes_billed": processing_info["total_bytes_billed"],
-                    "total_bytes_processed": processing_info["total_bytes_processed"],
-                }
-            )
-
-            logging.info(
-                "Finished running %s check on %s:%s.%s for date_partition: %s"
-                % (test_type, *table_params.values(), date_partition)
-            )
-
-        insert_dim_processing_info(table_processing_info)
+    # TODO: test execution could technically be taking place in parallel
+    for dim_test in dim_config.dim_tests:
+        test_type = dim_test.type
+        test_description = dim_test.description
 
         logging.info(
-            "Retrieving failed results for %s:%s.%s for date_partition: %s (run_id: %s)"  # noqa: E501
-            % (*table_param_values, date_partition, run_uuid)
+            "Running %s check on %s:%s.%s for date_partition: %s"
+            % (test_type, *table_param_values, date_partition)
         )
-        failed_dim_checks = retrieve_failed_dim_checks(*table_param_values, run_uuid)
 
-        dim_checks_failed = bool(failed_dim_checks.to_dict("records"))
+        dim_check = DIM_CHECK_CLASS_MAPPING[test_type](**table_params, dim_check_description=test_description)
 
-        if dim_checks_failed and dim_config.slack_alerts.enabled and not alert_muted:
-            logging.info(
-                "Sending out an alert for %s:%s.%s for date_partition: %s"
-                % (*table_param_values, date_partition)
+        query_params = prepare_params(
+            *table_params,
+            dim_config=dim_config,
+            alert_muted=alert_muted,
+            check_params=dim_test.params,
+            run_uuid=run_uuid,
+            date_partition=date_partition,
+        )
+
+        test_sql = dim_check.generate_test_sql(
+            params=query_params,
+        )
+
+        _, processing_info = dim_check.execute_test_sql(
+            sql=test_sql.replace(
+                "'[[dim_check_sql]]'",
+                "'''"
+                + test_sql.replace("\\", "\\\\").replace(
+                    "'[[dim_check_sql]]' AS dim_check_sql,", ""
+                )
+                + "'''",
             )
+        )
 
-            send_slack_alert(
-                channels=dim_config.slack_alerts.notify.channels,
-                info=format_failed_check_results(failed_dim_checks),
-            )
+        table_processing_info.append(
+            {
+                **table_params,
+                "date_partition": date_partition,
+                "dim_check_type": test_type,
+                "dim_check_description": test_description,
+                "run_id": run_uuid,
+                "total_bytes_billed": processing_info["total_bytes_billed"],
+                "total_bytes_processed": processing_info["total_bytes_processed"],
+            }
+        )
 
-        else:
-            logging.info(
+        logging.info(
+            "Finished running %s check on %s:%s.%s for date_partition: %s"
+            % (test_type, *table_params.values(), date_partition)
+        )
+
+    insert_dim_processing_info(table_processing_info)
+    logging.info("Test results have been stored in %s" % RUN_HISTORY_TABLE)
+
+    logging.info(
+        "Retrieving check results for %s:%s.%s for date_partition: %s (run_id: %s)"  # noqa: E501
+        % (*table_param_values, date_partition, run_uuid)
+    )
+
+    errors_only = notification_level.upper() == "ERROR"
+    dim_checks = retrieve_dim_checks(*table_param_values, run_uuid, failed_only=errors_only).to_dict("records")
+    dim_checks_failed = bool([dim_check for dim_check in dim_checks if not dim_check["passed"]])
+
+    # if notification_level >= NotificationLevel.ERROR and not dim_config.slack_alerts.enabled and not alert_muted:
+    if dim_config.slack_alerts.enabled and not alert_muted and dim_checks:
+        logging.info(
+            "Sending out an alert for %s:%s.%s for date_partition: %s"
+            % (*table_param_values, date_partition)
+        )
+
+        send_slack_alert(
+            channels=dim_config.slack_alerts.notify.channels,
+            message=format_slack_notification(dim_checks),
+        )
+    else:
+        logging.info(
                 "Alerts are muted or disabled for table: %s:%s.%s for date_partition: %s"  # noqa: E501
                 % (*table_param_values, date_partition)
             )
-
-    logging.info("Test results have been stored in %s" % RUN_HISTORY_TABLE)
 
     logging.info(
         "Finished running data checks on %s:%s.%s for date_partition: %s (run_id: %s)"  # noqa: E501

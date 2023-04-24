@@ -9,8 +9,9 @@ class ColumnSumNotZero(Base):
         project_id,
         dataset,
         table,
+        dim_check_description="",
     ):
-        super().__init__(project_id, dataset, table, "column_sum_not_zero")
+        super().__init__(project_id, dataset, table, dim_check_type="column_sum_not_zero", dim_check_description=dim_check_description)
 
     def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
         return super().generate_test_sql(params=params)

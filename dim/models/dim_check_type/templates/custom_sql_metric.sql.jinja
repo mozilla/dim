@@ -8,6 +8,7 @@ SELECT
     '{{ table }}' AS `table`,
     '{{ params.tier }}' AS tier,
     '{{ dim_check_type }}' AS dim_check_type,
+  '{{ dim_check_description }}' AS dim_check_description,
     DATE('{{ params.partition }}') AS date_partition,
     IF({{ params.condition }}, True, False) AS passed,
     '{{ params.owner }}' AS owner,
