@@ -9,12 +9,7 @@ class CompareRowCountToTable(Base):
         project_id,
         dataset,
         table,
+        dim_check_title="",
         dim_check_description="",
     ):
-        super().__init__(project_id, dataset, table, dim_check_type="compare_row_count_to_table", dim_check_description=dim_check_description)
-
-    def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
-        return super().generate_test_sql(params=params)
-
-    def execute_test_sql(self, sql: str) -> Any:
-        return super().execute_test_sql(sql=sql)
+        super().__init__(project_id, dataset, table, dim_check_type="compare_row_count_to_table", dim_check_title=dim_check_title, dim_check_description=dim_check_description)

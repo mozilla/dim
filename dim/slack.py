@@ -27,6 +27,7 @@ def format_slack_notification(results: List[Dict[Any, Any]]) -> str:
             check_section_template.format(
                 check_status=":large_green_circle: `Passed`" if dim_check["passed"] else ":red_circle: `Failed`",
                 check_type=dim_check["dim_check_type"],
+                check_name=dim_check["dim_check_title"],
                 check_description=dim_check["dim_check_description"],
                 check_result=dim_check["query_results"],
                 check_context=dim_check["dim_check_context"],

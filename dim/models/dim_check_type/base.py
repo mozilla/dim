@@ -1,10 +1,9 @@
-# from pathlib import Path
 from typing import Any, Dict
 
 from jinja2 import BaseLoader, Environment, FileSystemLoader
 
 import dim.const
-from dim.bigquery_client import BigQueryClient
+import dim.bigquery_client
 
 
 class Base:
@@ -14,19 +13,21 @@ class Base:
         dataset: str,
         table: str,
         dim_check_type: str,
+        dim_check_title: str,
         dim_check_description: str,
     ):
         self.project_id = project_id
         self.dataset = dataset
         self.table = table
         self.dim_check_type = dim_check_type
+        self.dim_check_title = dim_check_title
         self.dim_check_description = dim_check_description
 
     @property
     def bigquery(self):
         """Return the BigQuery client instance."""
 
-        return BigQueryClient(
+        return dim.bigquery_client.BigQueryClient(
             project_id=dim.const.DESTINATION_PROJECT,
             dataset=dim.const.DESTINATION_DATASET,
         )
@@ -48,6 +49,7 @@ class Base:
             "dataset": self.dataset,
             "table": self.table,
             "dim_check_type": self.dim_check_type,
+            "dim_check_title": self.dim_check_title,
             "dim_check_description": self.dim_check_description,
             "params": params,
         }
