@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from dim.models.dim_check_type.base import Base
 
 
@@ -12,4 +10,11 @@ class CustomSqlMetric(Base):
         dim_check_title="",
         dim_check_description="",
     ):
-        super().__init__(project_id, dataset, table, dim_check_type="custom_sql_metric", dim_check_title=dim_check_title, dim_check_description=dim_check_description)
+        super().__init__(
+            project_id,
+            dataset,
+            table,
+            dim_check_type="custom_sql_metric",
+            dim_check_title=dim_check_title,
+            dim_check_description=dim_check_description,
+        )

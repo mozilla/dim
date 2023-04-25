@@ -1,18 +1,13 @@
 import logging
 from datetime import datetime
 from uuid import uuid4
-from dim.bigquery_client import insert_dim_processing_info, retrieve_dim_checks, is_alert_muted
 
-from dim.const import (
-    CONFIG_FILENAME,
-    CONFIG_ROOT_PATH,
-    DIM_CHECK_CLASS_MAPPING,
-    RUN_HISTORY_TABLE,
-)
+from dim.bigquery_client import insert_dim_processing_info, is_alert_muted, retrieve_dim_checks
+from dim.const import CONFIG_FILENAME, CONFIG_ROOT_PATH, DIM_CHECK_CLASS_MAPPING, RUN_HISTORY_TABLE
 from dim.error import DimChecksFailed
 from dim.models.dim_config import DimConfig
-from dim.slack import send_slack_alert, format_slack_notification
-from dim.utils import read_config, prepare_params
+from dim.slack import format_slack_notification, send_slack_alert
+from dim.utils import prepare_params, read_config
 
 
 def run_check(
@@ -62,7 +57,9 @@ def run_check(
             % (test_type, *table_param_values, date_partition)
         )
 
-        dim_check = DIM_CHECK_CLASS_MAPPING[test_type](**table_params, dim_check_title=test_title, dim_check_description=test_description)
+        dim_check = DIM_CHECK_CLASS_MAPPING[test_type](
+            **table_params, dim_check_title=test_title, dim_check_description=test_description
+        )
 
         query_params = prepare_params(
             *table_params,
@@ -115,7 +112,9 @@ def run_check(
     )
 
     errors_only = notification_level.upper() == "ERROR"
-    dim_checks = retrieve_dim_checks(*table_param_values, run_uuid, failed_only=errors_only).to_dict("records")
+    dim_checks = retrieve_dim_checks(
+        *table_param_values, run_uuid, failed_only=errors_only
+    ).to_dict("records")
     dim_checks_failed = bool([dim_check for dim_check in dim_checks if not dim_check["passed"]])
 
     if dim_config.slack_alerts.enabled and not alert_muted and dim_checks:
@@ -130,9 +129,9 @@ def run_check(
         )
     else:
         logging.info(
-                "Alerts are muted or disabled for table: %s:%s.%s for date_partition: %s"  # noqa: E501
-                % (*table_param_values, date_partition)
-            )
+            "Alerts are muted or disabled for table: %s:%s.%s for date_partition: %s"  # noqa: E501
+            % (*table_param_values, date_partition)
+        )
 
     logging.info(
         "Finished running data checks on %s:%s.%s for date_partition: %s (run_id: %s)"  # noqa: E501

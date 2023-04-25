@@ -1,11 +1,10 @@
+import json
 from textwrap import dedent
 from typing import Any, Dict
 
 import attr
 import jinja2
-
 import yaml
-import json
 
 
 def prepare_params(

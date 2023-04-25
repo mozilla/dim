@@ -10,4 +10,11 @@ class ColumnLength(Base):
         dim_check_title="",
         dim_check_description="Checking that the number of characters matches our expectations.",
     ):
-        super().__init__(project_id, dataset, table, dim_check_type="column_length", dim_check_title=dim_check_title, dim_check_description=dim_check_description)
+        super().__init__(
+            project_id,
+            dataset,
+            table,
+            dim_check_type="column_length",
+            dim_check_title=dim_check_title,
+            dim_check_description=dim_check_description,
+        )

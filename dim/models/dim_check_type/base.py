@@ -2,8 +2,8 @@ from typing import Any, Dict
 
 from jinja2 import BaseLoader, Environment, FileSystemLoader
 
-import dim.const
 import dim.bigquery_client
+import dim.const
 
 
 class Base:

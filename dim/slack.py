@@ -1,8 +1,8 @@
+import json
 import logging
 import os
-from typing import Any, Dict, List
-import json
 from textwrap import dedent
+from typing import Any, Dict, List
 
 from slack_sdk import WebClient
 
@@ -12,10 +12,13 @@ def format_slack_notification(results: List[Dict[Any, Any]]) -> str:
     date_partition = results[0]["date_partition"]
     run_id = results[0]["run_id"]
     owner = json.loads(results[0]["owner"]).get("slack")
-    run_status = ":large_green_circle: Passed" if bool([result for result in results if result["passed"]]) else ":red_circle: Failed"
+    run_status = (
+        ":large_green_circle: Passed"
+        if bool([result for result in results if result["passed"]])
+        else ":red_circle: Failed"
+    )
 
-    check_section_template = \
-        """
+    check_section_template = """
         *DIM check*: `{check_type}`
         *DIM check status*: {check_status}
         *DIM check description*: {check_description}
@@ -25,13 +28,16 @@ def format_slack_notification(results: List[Dict[Any, Any]]) -> str:
     check_sections = "\n---".join(
         [
             check_section_template.format(
-                check_status=":large_green_circle: `Passed`" if dim_check["passed"] else ":red_circle: `Failed`",
+                check_status=":large_green_circle: `Passed`"
+                if dim_check["passed"]
+                else ":red_circle: `Failed`",
                 check_type=dim_check["dim_check_type"],
                 check_name=dim_check["dim_check_title"],
                 check_description=dim_check["dim_check_description"],
                 check_result=dim_check["query_results"],
                 check_context=dim_check["dim_check_context"],
-            ) for dim_check in results
+            )
+            for dim_check in results
         ]
     )
 
@@ -69,38 +75,38 @@ def send_slack_alert(
         slack_client.chat_postMessage(
             channel=channel,
             text=message,
-    #         blocks=[
-    #     {
-    #         "type": "section",
-    #         "text": {
-    #             "type": "mrkdwn",
-    #             "text": "Danny Torrence left the following review for your property:"
-    #         }
-    #     },
-    #     {
-    #         "type": "section",
-    #         "text": {
-    #             "type": "mrkdwn",
-    #             "text": "<https://example.com|Overlook Hotel> \n :star: \n Doors had too many axe holes, guest in room " +
-    #                 "237 was far too rowdy, whole place felt stuck in the 1920s."
-    #         },
-    #         "accessory": {
-    #             "type": "image",
-    #             "image_url": "https://images.pexels.com/photos/750319/pexels-photo-750319.jpeg",
-    #             "alt_text": "Haunted hotel image"
-    #         }
-    #     },
-    #     {
-    #         "type": "section",
-    #         "fields": [
-    #             {
-    #                 "type": "mrkdwn",
-    #                 "text": "*Average Rating*\n1.0"
-    #             }
-    #         ]
-    #     }
-    # ]
+            #   blocks=[
+            #     {
+            #         "type": "section",
+            #         "text": {
+            #             "type": "mrkdwn",
+            #             "text": "Danny Torrence left the following review for your property:"
+            #         }
+            #     },
+            #     {
+            #         "type": "section",
+            #         "text": {
+            #             "type": "mrkdwn",
+            #             "text": "<https://example.com|Overlook Hotel> \n :star: \n Doors had too many axe holes, guest in room " +  # noqa: E501
+            #                 "237 was far too rowdy, whole place felt stuck in the 1920s."
+            #         },
+            #         "accessory": {
+            #             "type": "image",
+            #             "image_url": "https://images.pexels.com/photos/750319/pexels-photo-750319.jpeg",  # noqa: E501
+            #             "alt_text": "Haunted hotel image"
+            #         }
+            #     },
+            #     {
+            #         "type": "section",
+            #         "fields": [
+            #             {
+            #                 "type": "mrkdwn",
+            #                 "text": "*Average Rating*\n1.0"
+            #             }
+            #         ]
+            #     }
+            # ]
             # as_user=True,
             # username="dim",
-            # icon_emoji=":alert:",
+            # icon_emoji=":`alert:",
         )

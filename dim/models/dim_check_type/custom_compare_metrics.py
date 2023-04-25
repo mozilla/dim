@@ -10,4 +10,11 @@ class CustomCompareMetrics(Base):
         dim_check_title="",
         dim_check_description="",
     ):
-        super().__init__(project_id, dataset, table, dim_check_type="custom_compare_metrics", dim_check_title=dim_check_title, dim_check_description=dim_check_description)
+        super().__init__(
+            project_id,
+            dataset,
+            table,
+            dim_check_type="custom_compare_metrics",
+            dim_check_title=dim_check_title,
+            dim_check_description=dim_check_description,
+        )

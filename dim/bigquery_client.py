@@ -1,22 +1,22 @@
 """BigQuery handler."""
 import logging
+from textwrap import dedent
 from typing import Any, Dict, Optional
 
 import attr
-from textwrap import dedent
 from google.cloud import bigquery
-from google.cloud.exceptions import NotFound
 from google.cloud.bigquery.job import WriteDisposition
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.bigquery.table import Table
+from google.cloud.exceptions import NotFound
 
 from dim.const import (
     DESTINATION_DATASET,
     DESTINATION_PROJECT,
-    PROCESSING_INFO_TABLE,
-    RUN_HISTORY_TABLE,
     MUTED_ALERTS_TABLE,
     MUTED_ALERTS_TABLE_NAME,
+    PROCESSING_INFO_TABLE,
+    RUN_HISTORY_TABLE,
 )
 
 

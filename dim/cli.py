@@ -4,11 +4,11 @@ from datetime import timedelta
 import click
 
 from dim.app import run_check
+from dim.bigquery_client import mute_alerts_for_date, unmute_alerts_for_date
 from dim.const import INPUT_DATE_FORMAT, LOGGING_LEVEL, SOURCE_PROJECT
 from dim.error import CmdDateInfoNotProvidedException, DateRangeException, DimConfigError
 from dim.models.dim_config import DimConfig
 from dim.utils import read_config
-from dim.bigquery_client import mute_alerts_for_date, unmute_alerts_for_date
 
 logging.basicConfig(level=LOGGING_LEVEL)
 
