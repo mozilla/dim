@@ -66,6 +66,8 @@ def test_column_length():
             'tier_2' AS tier,
             DATE('1990-01-01') AS date_partition,
             'column_length' AS dim_check_type,
+            '' AS dim_check_title,
+            'Checking that the number of characters matches our expectations.' AS dim_check_description,
             IF(country_length_mismatch_count = 0, True, False) AS passed,
             '{"email": "akommasani@mozilla.com", "slack": "alekhya"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,

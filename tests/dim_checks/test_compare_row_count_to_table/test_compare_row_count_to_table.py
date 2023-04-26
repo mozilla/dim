@@ -73,6 +73,8 @@ def test_compare_row_count_to_table():
             'tier_2' AS tier,
             DATE('1990-01-01') AS date_partition,
             'compare_row_count_to_table' AS dim_check_type,
+            '' AS dim_check_title,
+            '' AS dim_check_description,
             IF(row_count = dummy2_table_row_count, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,

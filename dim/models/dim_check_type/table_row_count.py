@@ -1,5 +1,3 @@
-from typing import Any, Dict
-
 from dim.models.dim_check_type.base import Base
 
 
@@ -9,11 +7,14 @@ class TableRowCount(Base):
         project_id,
         dataset,
         table,
+        dim_check_title="",
+        dim_check_description="Checking if the row count in the table is as expected.",
     ):
-        super().__init__(project_id, dataset, table, "table_row_count")
-
-    def generate_test_sql(self, *, params: Dict[Any, Any]) -> str:
-        return super().generate_test_sql(params=params)
-
-    def execute_test_sql(self, sql: str) -> Any:
-        return super().execute_test_sql(sql=sql)
+        super().__init__(
+            project_id,
+            dataset,
+            table,
+            dim_check_type="table_row_count",
+            dim_check_title=dim_check_title,
+            dim_check_description=dim_check_description,
+        )

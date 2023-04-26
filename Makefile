@@ -13,7 +13,7 @@ build: ## Builds final app Docker image
 
 .PHONY: test
 test-unit: build
-	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m pytest tests/
+	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m pytest dim/ tests/
 
 test-black: build
 	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m black --line-length=100 --check dim/ tests/
@@ -30,7 +30,7 @@ test-mypy: build
 test-all: build test-unit test-flake8 test-isort test-black #test-mypy
 
 format-black:
-	@venv/bin/python python -m black dim/ tests/
+	@venv/bin/python -m black --line-length=100 dim/ tests/
 
 format-isort:
 	@venv/bin/isort dim/ tests/

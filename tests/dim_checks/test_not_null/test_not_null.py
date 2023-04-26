@@ -69,6 +69,8 @@ def test_not_null():
             'tier_3' AS tier,
             DATE('1970-01-01') AS date_partition,
             'not_null' AS dim_check_type,
+            '' AS dim_check_title,
+            '' AS dim_check_description,
             IF(age_null_count + country_null_count = 0, True, False) AS passed,
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,

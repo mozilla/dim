@@ -3,7 +3,7 @@ import logging
 from dim.models.dim_check_type import *  # noqa: F403, E501
 
 CONFIG_ROOT_PATH = "dim_checks"
-CONFIG_EXTENSION = ".yaml"
+CONFIG_FILENAME = "dim_checks.yaml"
 INPUT_DATE_FORMAT = "%Y-%m-%d"
 
 LOGGING_LEVEL = logging.INFO
