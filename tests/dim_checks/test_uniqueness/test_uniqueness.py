@@ -66,8 +66,8 @@ def test_uniqueness():
             'tier_3' AS tier,
             DATE('1970-01-01') AS date_partition,
             'uniqueness' AS dim_check_type,
-            '' AS dim_check_title,
-            '' AS dim_check_description,
+            NULLIF('None', 'None') AS dim_check_title,
+            NULLIF('None', 'None') AS dim_check_description,
             IF(client_id_duplicate_count + another_unique_column_duplicate_count = 0, True, False) AS passed,  # noqa: E501
             '{"email": "dummy@mozilla.com", "slack": "dummy"}' AS owner,
             TO_JSON_STRING(CTE) AS query_results,

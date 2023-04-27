@@ -74,6 +74,8 @@ def run_check(
             params=query_params,
         )
 
+        # TODO: do we need to store the exact query executed inside this table?
+        # could we just get a link to the executed job in bq and include the link instead?
         _, processing_info = dim_check.execute_test_sql(
             sql=test_sql.replace(
                 "'[[dim_check_sql]]'",
@@ -93,6 +95,7 @@ def run_check(
                 "dim_check_title": test_title,
                 "dim_check_description": test_description,
                 "run_id": run_uuid,
+                "bq_job_id": processing_info["job_id"],
                 "total_bytes_billed": processing_info["total_bytes_billed"],
                 "total_bytes_processed": processing_info["total_bytes_processed"],
             }
@@ -113,7 +116,7 @@ def run_check(
 
     errors_only = notification_level.upper() == "ERROR"
     dim_checks = retrieve_dim_checks(
-        *table_param_values, run_uuid, failed_only=errors_only
+        *table_param_values, run_uuid, date_partition, failed_only=errors_only
     ).to_dict("records")
     dim_checks_failed = bool([dim_check for dim_check in dim_checks if not dim_check["passed"]])
 
@@ -125,7 +128,7 @@ def run_check(
 
         send_slack_alert(
             channels=dim_config.slack_alerts.notify.channels,
-            message=format_slack_notification(dim_checks),
+            message=format_slack_notification(dim_checks, config_path),
         )
     else:
         logging.info(

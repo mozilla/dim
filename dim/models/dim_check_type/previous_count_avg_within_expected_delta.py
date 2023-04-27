@@ -7,8 +7,8 @@ class PreviousCountAvgWithinExpectedDelta(Base):
         project_id,
         dataset,
         table,
-        dim_check_title="",
-        dim_check_description="",
+        dim_check_title=None,
+        dim_check_description=None,
     ):
         super().__init__(
             project_id,
