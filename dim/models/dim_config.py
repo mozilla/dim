@@ -22,6 +22,7 @@ class SlackAlertConfig:
     enabled: bool = attr.ib()
     notify: SlackEntities = attr.ib()
     notification_level: str = attr.ib(default="ERROR")
+    notify_channel: Optional[bool] = attr.ib(False)
 
 
 @attr.s(auto_attribs=True)

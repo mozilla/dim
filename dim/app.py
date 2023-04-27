@@ -42,6 +42,8 @@ def run_check(
 
     # TODO: fix the alert level setting
     notification_level = dim_config.slack_alerts.notification_level
+    notify_channel = dim_config.slack_alerts.notify_channel
+
     alert_muted = is_alert_muted(*table_param_values, date_partition)
 
     table_processing_info = list()
@@ -128,7 +130,7 @@ def run_check(
 
         send_slack_alert(
             channels=dim_config.slack_alerts.notify.channels,
-            message=format_slack_notification(dim_checks, config_path),
+            message=format_slack_notification(dim_checks, config_path, notify_channel),
         )
     else:
         logging.info(

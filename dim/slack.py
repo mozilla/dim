@@ -8,7 +8,7 @@ from slack_sdk import WebClient
 
 
 def format_slack_notification(
-    results: List[Dict[Any, Any]], config_path: str
+    results: List[Dict[Any, Any]], config_path: str, notify_channel: bool
 ) -> List[Dict[str, Any]]:
     """
     Formats dim results into a format supported by slack client chat.postMessage method.
@@ -33,9 +33,11 @@ def format_slack_notification(
         *DIM check title*: {check_title}
         *DIM check description*: {check_description}
         *DIM check result*: {check_result} | {check_context}
-        *DIM check BQ job id*: https://console.cloud.google.com/bigquery?project=data-monitoring-dev&j=bq:US:{bq_job_id}&page=queryresults  # noqa: E501
+        *DIM check BQ job*: https://console.cloud.google.com/bigquery?project=data-monitoring-dev&j=bq:US:{bq_job_id}&page=queryresults  # noqa: E501
         ----------
-        """
+        """.replace(
+            "  # noqa: E501", ""
+        )  # TODO: facepalm...
     )
 
     formatted_check_sections = [
@@ -65,7 +67,7 @@ def format_slack_notification(
                     ==================================================================
                     *Table*: `{dataset}`
                     *Date partition*: `{date_partition}`
-                    *Owner*: <@{owner}>
+                    *Owner*: <@{owner}> {"(cc: <!channel>)" if notify_channel else ""}
                     ----------
                     """
                 ),
@@ -116,8 +118,8 @@ def send_slack_alert(
             channel=channel,
             text="\n".join([section["text"]["text"] for section in message]),
             blocks=message,
+            link_names=True,
             unfurl_links=False,
             unfurl_media=False,
-            username="dim",
             icon_emoji=":robot_face:",
         )
