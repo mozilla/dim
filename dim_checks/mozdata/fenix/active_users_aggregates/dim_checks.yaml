@@ -1,0 +1,105 @@
+dim_config:
+  owner:
+    email: lvargas@mozilla.com
+    slack: lvargas
+  slack_alerts:
+    enabled: true
+    notification_level: INFO
+    notify_channel: true
+    notify:
+      channels:
+        - kpi-monitoring-dim
+  tier: tier_1
+  partition_field: submission_date
+  dim_tests:
+    # release channel dau comparison
+    - type: custom_compare_metrics
+      title: DAU validation - Firefox Android (Fenix) - `RELEASE` channel
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (release channel).
+      params:
+        condition: dau_sum = distinct_client_count
+        metric_1:
+          name: dau_sum
+          query: |
+            SELECT
+              SUM(dau) AS dau_sum,
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE submission_date = "{{ params.partition }}"
+            AND channel = "release"
+        metric_2:
+          name: distinct_client_count
+          query: |
+            SELECT COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
+            FROM `moz-fx-data-shared-prod.org_mozilla_firefox_live.baseline_v1`
+            WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+            AND mozfun.norm.fenix_app_info("org_mozilla_firefox", client_info.app_build).channel = "release"
+    # beta channel dau comparison
+    - type: custom_compare_metrics
+      title: DAU validation - Firefox Android (Fenix) - `BETA` channel
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (beta channel).
+      params:
+        condition: dau_sum = distinct_client_count
+        metric_1:
+          name: dau_sum
+          query: |
+            SELECT
+              SUM(dau) AS dau_sum,
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE submission_date = "{{ params.partition }}"
+            AND channel = "beta"
+        metric_2:
+          name: distinct_client_count
+          query: |
+            WITH base AS (
+              SELECT client_info.client_id
+              FROM `moz-fx-data-shared-prod.org_mozilla_firefox_beta_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_firefox_beta", client_info.app_build).channel = "beta"
+              -- NOTE: nightly table also contains some entries considered to be "beta" channel by our ETL
+              -- this is why the below entries are included here.
+              UNION ALL
+              SELECT client_info.client_id
+              FROM `moz-fx-data-shared-prod.org_mozilla_fenix_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fenix", client_info.app_build).channel = "beta"
+            )
+            SELECT COUNT(DISTINCT client_id) AS distinct_client_count,
+            FROM base
+    # nightly channel dau comparison
+    - type: custom_compare_metrics
+      title: DAU validation - Firefox Android (Fenix) - `NIGHTLY` channel
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (nightly channel).
+      params:
+        condition: dau_sum = distinct_client_count
+        metric_1:
+          name: dau_sum
+          query: |
+            SELECT
+              SUM(dau) AS dau_sum,
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE submission_date = "{{ params.partition }}"
+            AND channel = "nightly"
+        metric_2:
+          name: distinct_client_count
+          query: |
+            WITH base AS (
+              SELECT client_info.client_id
+              FROM `moz-fx-data-shared-prod.org_mozilla_fenix_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fenix", client_info.app_build).channel = "nightly"
+              -- NOTE: the below two tables are marked as depricated inside the GLEAN dictionary
+              -- however, they are still considered when generating active_users_aggregates metrics
+              -- this is why they are being considered here.
+              UNION ALL
+              SELECT client_info.client_id
+              FROM `moz-fx-data-shared-prod.org_mozilla_fenix_nightly_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fenix_nightly", client_info.app_build).channel = "nightly"
+              UNION ALL
+              SELECT client_info.client_id
+              FROM `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fennec_aurora", client_info.app_build).channel = "nightly"
+            )
+            SELECT COUNT(DISTINCT client_id) AS distinct_client_count,
+            FROM base
