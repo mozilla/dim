@@ -1,0 +1,41 @@
+dim_config:
+  owner:
+    email: lvargas@mozilla.com
+    slack: lvargas
+  slack_alerts:
+    enabled: true
+    notification_level: INFO
+    # TODO: maybe this could be made more granual
+    # and we could have different settings per channel?
+    notify_channel: true
+    notify:
+      channels:
+        # - kpi-monitoring-dim
+        - dim_test_run
+  tier: tier_1
+  partition_field: submission_date
+  dim_tests:
+    - type: custom_compare_metrics
+      title: DAU validation - Firefox Android (Fenix)
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table.
+      params:
+        condition: dau_sum = distinct_client_count
+        # TODO: metric should be a list rather than a map
+        # to enable us an arbitary number of metrics in the comparison
+        metric_1:
+          name: dau_sum
+          query: |
+            SELECT SUM(dau),
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE
+              submission_date = "{{ params.partition }}"
+              AND channel = "release"
+        metric_2:
+          name: distinct_client_count
+          query: |
+              SELECT
+                COUNT(DISTINCT client_info.client_id)
+              FROM `moz-fx-data-shared-prod.org_mozilla_fenix_live.baseline_v1`
+              WHERE
+                DATE(submission_timestamp) = "{{ params.partition }}"
+                AND document_id IS NOT NULL
