@@ -3,23 +3,18 @@ dim_config:
     email: lvargas@mozilla.com
     slack: lvargas
   slack_alerts:
-    notification_level: INFO
     enabled: true
+    notification_level: INFO
+    # TODO: maybe this could be made more granual
+    # and we could have different settings per channel?
+    notify_channel: true
     notify:
       channels:
-        # - kpi-monitoring-dim
-        - dim_test_run
+        - kpi-monitoring-dim
+        # - dim_test_run
   tier: tier_1
   partition_field: submission_date
   dim_tests:
-    # - type: table_row_count
-    #   params:
-    #     condition: ">= 1000"
-    # - type: column_length
-    #   params:
-    #     columns:
-    #       - country
-    #     condition: "= 2"
     - type: custom_compare_metrics
       title: DAU validation
       description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table.
