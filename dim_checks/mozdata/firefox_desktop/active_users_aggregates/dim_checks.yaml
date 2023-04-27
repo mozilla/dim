@@ -12,20 +12,19 @@ dim_config:
   tier: tier_1
   partition_field: submission_date
   dim_tests:
-    - type: table_row_count
-      params:
-        condition: ">= 1000"
-    - type: column_length
-      params:
-        columns:
-          - country
-        condition: "= 2"
+    # - type: table_row_count
+    #   params:
+    #     condition: ">= 1000"
+    # - type: column_length
+    #   params:
+    #     columns:
+    #       - country
+    #     condition: "= 2"
     - type: custom_compare_metrics
       title: DAU validation
       description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table.
       params:
         condition: dau_sum = distinct_client_count
-        # alert_message: TODO  # TODO: should we be able to specify a specific message in the config?
         # TODO: metric should be a list rather than a map
         # to enable us an arbitary number of metrics in the comparison
         metric_1:
@@ -56,7 +55,7 @@ dim_config:
             FULL OUTER JOIN overactive USING(client_id)
             WHERE overactive.client_id IS NULL
     - type: custom_compare_metrics
-      name: QDAU validation
+      title: QDAU validation
       description: Validating that QDAU sum in Active Users Aggregates is as expected based on the live table.
       params:
         condition: qdau_sum = live_table_qdau_count

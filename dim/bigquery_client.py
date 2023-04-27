@@ -86,27 +86,32 @@ class BigQueryClient:
         return result, {
             "total_bytes_billed": bq_query_job.total_bytes_billed,
             "total_bytes_processed": bq_query_job.total_bytes_processed,
+            "job_id": bq_query_job.job_id,
         }
 
 
-def retrieve_dim_checks(project_id, dataset, table, run_uuid, failed_only=True):
+def retrieve_dim_checks(project_id, dataset, table, run_uuid, date_partition, failed_only=True):
     sql = dedent(
         f"""
         SELECT
             CONCAT(project_id, '.', dataset, '.', table) AS dataset,
             dim_check_type,
             dim_check_title,
-            dim_check_description,
-            FORMAT_DATE("%Y-%m-%d %H:%M:%S", actual_run_date) AS actual_run_date,  # noqa: E501
+            run_log.dim_check_description,
+            FORMAT_DATE("%Y-%m-%d %H:%M:%S", run_log.actual_run_date) AS actual_run_date,  # noqa: E501
             date_partition,
             owner,
             query_results,
             dim_check_context,
             run_id,
             passed,
-        FROM `{RUN_HISTORY_TABLE}`
+            bq_job_id,
+        FROM `{RUN_HISTORY_TABLE}` AS run_log
+        LEFT JOIN `data-monitoring-dev.dim.dim_run_processing_info_v1` AS processing
+        USING(project_id, dataset, `table`, dim_check_type, dim_check_title, date_partition, run_id)
         WHERE
-            project_id = '{project_id}'
+            date_partition = '{date_partition}'
+            AND project_id = '{project_id}'
             AND dataset = '{dataset}'
             AND table = '{table}'
             AND run_id = '{run_uuid}'
@@ -159,6 +164,7 @@ def get_dim_processing_info_table():
         SchemaField(name="dim_check_description", field_type="STRING"),
         SchemaField(name="date_partition", field_type="DATE"),
         SchemaField(name="run_id", field_type="STRING"),
+        SchemaField(name="bq_job_id", field_type="STRING"),
         SchemaField(name="total_bytes_billed", field_type="INTEGER"),
         SchemaField(name="total_bytes_processed", field_type="INTEGER"),
     ]

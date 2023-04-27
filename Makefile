@@ -12,33 +12,33 @@ build: ## Builds final app Docker image
 	@docker build -t ${IMAGE_BASE}:${IMAGE_VERSION} -f Dockerfile .
 
 .PHONY: test
-test-unit: build
+test-unit: build ## Runs python unit tests for dim and tests directories
 	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m pytest dim/ tests/
 
-test-black: build
+test-black: build ## Runs black check against python code inside dim and tests directories
 	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m black --line-length=100 --check dim/ tests/
 
-test-flake8: build
+test-flake8: build ## Runs flake8 against python code inside dim and tests directories
 	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m flake8 --max-line-length=100 dim/ tests/
 
-test-isort: build
+test-isort: build ## Runs isort check against python code inside dim and tests directories
 	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m isort --check dim/ tests/
 
-test-mypy: build
+test-mypy: build ## Runs mypy against python code inside dim and tests directories
 	@docker run ${IMAGE_BASE}:${IMAGE_VERSION} python -m mypy dim/ tests/
 
-test-all: build test-unit test-flake8 test-isort test-black #test-mypy
+test-all: build test-unit test-flake8 test-isort test-black #test-mypy ## Runs all make test-* commands
 
-format-black:
+format-black: ## Runs black against python code inside dim and tests directories
 	@venv/bin/python -m black --line-length=100 dim/ tests/
 
-format-isort:
+format-isort: ## Runs black against python code inside dim and tests directories
 	@venv/bin/isort dim/ tests/
 
-format: format-isort format-black
+format: format-isort format-black ## Runs black and isort formatting against python code inside dim and tests directories
 
 # For setting up local environment
-setup-venv:
+setup-venv: ## Sets up local venv directory and installs python package dependencies in that environment
 ifneq ($(wildcard venv/.*),)
 	@echo "venv/ directory already exists to setup venv from scratch"
 	@echo "run 'make clean' then re-run this command"
@@ -50,32 +50,32 @@ else
 	@make update-local-env
 endif
 
-upgrade-pip: setup-venv
+upgrade-pip: setup-venv ## Upgrades pip version inside the virtual environment
 	@venv/bin/python python -m pip install --upgrade pip
 
 @PHONY: pip-compile
-pip-compile:
+pip-compile: ## Runs pip-compile and stores the output inside requirements/requirements.txt
 	@venv/bin/pip-compile -o - - <<< '.' | \
 		grep -v 'file://' | \
     	sed 's/pip-compile.*/update_deps/' > requirements/requirements.in
 	@venv/bin/pip-compile --generate-hashes -o requirements/requirements.txt requirements/requirements.in
 
-pip-compile-dev:
+pip-compile-dev: ## Runs pip-compile and stores the output inside requirements/dev-requirements.txt
 	@venv/bin/pip-compile -o - - <<< '.[testing]' | \
 		grep -v 'file://' | \
     	sed 's/pip-compile.*/update_deps/' > requirements/dev-requirements.in
 	@venv/bin/pip-compile --generate-hashes -o requirements/dev-requirements.txt requirements/dev-requirements.in
 
-install-requirements: setup-venv upgrade-pip pip-compile
+install-requirements: setup-venv upgrade-pip pip-compile ## Install packages defined inside requirements/requirements.txt inside the virtual env
 	@venv/bin/python python -m pip install -r requirements/requirements.txt
-install-requirements-dev: setup-venv upgrade-pip pip-compile-dev
+install-requirements-dev: setup-venv upgrade-pip pip-compile-dev ## Install packages defined inside requirements/dev-requirements.txt inside the virtual env
 	@venv/bin/python python -m pip install -r requirements/dev-requirements.txt
 
-update-deps: pip-compile pip-compile-dev
-update-local-env: install-requirements install-requirements-dev
+update-deps: pip-compile pip-compile-dev ## Runs pip-compile commands for both requirement files
+update-local-env: install-requirements install-requirements-dev ## Installs all python packages defined inside both requirement files inside the virtuan env
 
 .PHONY: clean
-make clean:  # Removes local env
+make clean:  ## Removes venv directory and all its contents
 	@rm -rf venv/
 
 

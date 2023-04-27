@@ -7,7 +7,7 @@ class TableRowCount(Base):
         project_id,
         dataset,
         table,
-        dim_check_title="",
+        dim_check_title=None,
         dim_check_description="Checking if the row count in the table is as expected.",
     ):
         super().__init__(
