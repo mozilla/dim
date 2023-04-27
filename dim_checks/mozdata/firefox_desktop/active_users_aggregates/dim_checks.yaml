@@ -1,6 +1,6 @@
 dim_config:
   owner:
-    email: lvargas@mozilla.com
+    email: lvargas@mozilla.com # TODO: add bochocki
     slack: lvargas
   slack_alerts:
     enabled: true
@@ -11,12 +11,11 @@ dim_config:
     notify:
       channels:
         - kpi-monitoring-dim
-        # - dim_test_run
   tier: tier_1
   partition_field: submission_date
   dim_tests:
     - type: custom_compare_metrics
-      title: DAU validation
+      title: DAU validation - Firefox Desktop
       description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table.
       params:
         condition: dau_sum = distinct_client_count
@@ -50,7 +49,7 @@ dim_config:
             FULL OUTER JOIN overactive USING(client_id)
             WHERE overactive.client_id IS NULL
     - type: custom_compare_metrics
-      title: QDAU validation
+      title: QDAU validation - Firefox Desktop
       description: Validating that QDAU sum in Active Users Aggregates is as expected based on the live table.
       params:
         condition: qdau_sum = live_table_qdau_count
