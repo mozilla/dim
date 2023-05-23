@@ -94,7 +94,7 @@ pytz==2022.7.1
     # via pandas
 pyyaml==6.0
     # via dim
-requests==2.28.2
+requests==2.31.0
     # via
     #   google-api-core
     #   google-cloud-bigquery
