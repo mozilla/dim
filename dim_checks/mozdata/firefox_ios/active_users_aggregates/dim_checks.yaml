@@ -12,63 +12,40 @@ dim_config:
   tier: tier_1
   partition_field: submission_date
   dim_tests:
-    # release channel dau comparison
     - type: custom_compare_metrics
-      title: DAU validation - Firefox iOS - `RELEASE` channel
-      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (release channel).
+      title: DAU validation - Firefox iOS
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live tables (all channels).
       params:
         condition: dau_sum = distinct_client_count
         metric_1:
           name: dau_sum
           query: |
-            SELECT
-              SUM(dau) AS dau_sum,
+            SELECT SUM(dau),
             FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
             WHERE submission_date = "{{ params.partition }}"
-            AND channel = "release"
         metric_2:
           name: distinct_client_count
           query: |
-            SELECT COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
-            FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox_live.baseline_v1`
-            WHERE DATE(submission_timestamp) = "{{ params.partition }}"
-    # beta channel dau comparison
-    - type: custom_compare_metrics
-      title: DAU validation - Firefox iOS - `BETA` channel
-      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (beta channel).
-      params:
-        condition: dau_sum = distinct_client_count
-        metric_1:
-          name: dau_sum
-          query: |
-            SELECT
-              SUM(dau) AS dau_sum,
-            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
-            WHERE submission_date = "{{ params.partition }}"
-            AND channel = "beta"
-        metric_2:
-          name: distinct_client_count
-          query: |
-            SELECT COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
-            FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefoxbeta_live.baseline_v1`
-            WHERE DATE(submission_timestamp) = "{{ params.partition }}"
-    # nightly channel dau comparison
-    - type: custom_compare_metrics
-      title: DAU validation - Firefox iOS - `NIGHTLY` channel
-      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (nightly channel).
-      params:
-        condition: dau_sum = distinct_client_count
-        metric_1:
-          name: dau_sum
-          query: |
-            SELECT
-              SUM(dau) AS dau_sum,
-            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
-            WHERE submission_date = "{{ params.partition }}"
-            AND channel = "nightly"
-        metric_2:
-          name: distinct_client_count
-          query: |
-            SELECT COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
-            FROM `moz-fx-data-shared-prod.org_mozilla_ios_fennec_live.baseline_v1`
-            WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+            WITH base AS (
+              SELECT
+                "release" AS channel,
+                COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
+              FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefox_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              -- beta channel
+              UNION ALL
+              SELECT
+                "beta" AS channel,
+                COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
+              FROM `moz-fx-data-shared-prod.org_mozilla_ios_firefoxbeta_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              -- nightly channel
+              UNION ALL
+              SELECT
+                "nightly" AS channel,
+                COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
+              FROM `moz-fx-data-shared-prod.org_mozilla_ios_fennec_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+            )
+            SELECT SUM(distinct_client_count)
+            FROM base
