@@ -28,7 +28,7 @@ dim_config:
           name: distinct_client_count
           query: |
             WITH base AS (
-              -- releae channel
+              -- release channel
               SELECT COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
               FROM `moz-fx-data-shared-prod.org_mozilla_focus_live.baseline_v1`
               WHERE DATE(submission_timestamp) = "{{ params.partition }}"
