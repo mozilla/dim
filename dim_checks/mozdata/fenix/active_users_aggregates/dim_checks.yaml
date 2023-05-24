@@ -12,78 +12,50 @@ dim_config:
   tier: tier_1
   partition_field: submission_date
   dim_tests:
-    # release channel dau comparison
     - type: custom_compare_metrics
-      title: DAU validation - Firefox Android (Fenix) - `RELEASE` channel
-      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (release channel).
+      title: DAU validation - Firefox Android (Fenix)
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live tables (all channels).
       params:
         condition: dau_sum = distinct_client_count
         metric_1:
           name: dau_sum
           query: |
-            SELECT
-              SUM(dau) AS dau_sum,
+            SELECT SUM(dau),
             FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
             WHERE submission_date = "{{ params.partition }}"
-            AND channel = "release"
-        metric_2:
-          name: distinct_client_count
-          query: |
-            SELECT COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
-            FROM `moz-fx-data-shared-prod.org_mozilla_firefox_live.baseline_v1`
-            WHERE DATE(submission_timestamp) = "{{ params.partition }}"
-            AND mozfun.norm.fenix_app_info("org_mozilla_firefox", client_info.app_build).channel = "release"
-    # beta channel dau comparison
-    - type: custom_compare_metrics
-      title: DAU validation - Firefox Android (Fenix) - `BETA` channel
-      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (beta channel).
-      params:
-        condition: dau_sum = distinct_client_count
-        metric_1:
-          name: dau_sum
-          query: |
-            SELECT
-              SUM(dau) AS dau_sum,
-            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
-            WHERE submission_date = "{{ params.partition }}"
-            AND channel = "beta"
         metric_2:
           name: distinct_client_count
           query: |
             WITH base AS (
-              SELECT client_info.client_id
+              -- release channel
+              SELECT
+                client_info.client_id,
+                "release" AS channel,
+              FROM `moz-fx-data-shared-prod.org_mozilla_firefox_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_firefox", client_info.app_build).channel = "release"
+              -- beta channel
+              UNION ALL
+              SELECT
+                client_info.client_id,
+                "beta" AS channel,
               FROM `moz-fx-data-shared-prod.org_mozilla_firefox_beta_live.baseline_v1`
               WHERE DATE(submission_timestamp) = "{{ params.partition }}"
               AND mozfun.norm.fenix_app_info("org_mozilla_firefox_beta", client_info.app_build).channel = "beta"
               -- NOTE: nightly table also contains some entries considered to be "beta" channel by our ETL
               -- this is why the below entries are included here.
               UNION ALL
-              SELECT client_info.client_id
+              SELECT
+                client_info.client_id,
+                "beta" AS channel,
               FROM `moz-fx-data-shared-prod.org_mozilla_fenix_live.baseline_v1`
               WHERE DATE(submission_timestamp) = "{{ params.partition }}"
               AND mozfun.norm.fenix_app_info("org_mozilla_fenix", client_info.app_build).channel = "beta"
-            )
-            SELECT COUNT(DISTINCT client_id) AS distinct_client_count,
-            FROM base
-    # nightly channel dau comparison
-    - type: custom_compare_metrics
-      title: DAU validation - Firefox Android (Fenix) - `NIGHTLY` channel
-      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table (nightly channel).
-      params:
-        condition: dau_sum = distinct_client_count
-        metric_1:
-          name: dau_sum
-          query: |
-            SELECT
-              SUM(dau) AS dau_sum,
-            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
-            WHERE submission_date = "{{ params.partition }}"
-            AND channel = "nightly"
-        metric_2:
-          name: distinct_client_count
-          query: |
-            WITH base AS (
-              SELECT client_info.client_id
+              -- nightly channel
+              UNION ALL
+              SELECT
+                client_info.client_id,
+                "nightly" AS channel,
               FROM `moz-fx-data-shared-prod.org_mozilla_fenix_live.baseline_v1`
               WHERE DATE(submission_timestamp) = "{{ params.partition }}"
               AND mozfun.norm.fenix_app_info("org_mozilla_fenix", client_info.app_build).channel = "nightly"
@@ -91,15 +63,26 @@ dim_config:
               -- however, they are still considered when generating active_users_aggregates metrics
               -- this is why they are being considered here.
               UNION ALL
-              SELECT client_info.client_id
+              SELECT
+                client_info.client_id,
+                "nightly" AS channel,
               FROM `moz-fx-data-shared-prod.org_mozilla_fenix_nightly_live.baseline_v1`
               WHERE DATE(submission_timestamp) = "{{ params.partition }}"
               AND mozfun.norm.fenix_app_info("org_mozilla_fenix_nightly", client_info.app_build).channel = "nightly"
               UNION ALL
-              SELECT client_info.client_id
+              SELECT
+                client_info.client_id,
+                "nightly" AS channel,
               FROM `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_live.baseline_v1`
               WHERE DATE(submission_timestamp) = "{{ params.partition }}"
               AND mozfun.norm.fenix_app_info("org_mozilla_fennec_aurora", client_info.app_build).channel = "nightly"
+            ),
+            distinct_client_counts_per_channel AS (
+              SELECT
+                channel,
+                COUNT(DISTINCT client_id) AS distinct_client_count,
+              FROM base
+              GROUP BY channel
             )
-            SELECT COUNT(DISTINCT client_id) AS distinct_client_count,
-            FROM base
+            SELECT SUM(distinct_client_count),
+            FROM distinct_client_counts_per_channel
