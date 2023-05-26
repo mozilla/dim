@@ -1,0 +1,96 @@
+dim_config:
+  owner:
+    email: lvargas@mozilla.com
+    slack: lvargas
+  slack_alerts:
+    enabled: true
+    notification_level: INFO
+    notify_channel: true
+    notify:
+      channels:
+        - kpi-monitoring-dim
+  tier: tier_1
+  partition_field: submission_date
+  dim_tests:
+    - type: custom_compare_metrics
+      title: DAU validation - Firefox Android (Fenix)
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live tables (all channels).
+      params:
+        condition: dau_sum = distinct_client_count
+        metric_1:
+          name: dau_sum
+          query: |
+            SELECT SUM(dau),
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE submission_date = "{{ params.partition }}"
+        metric_2:
+          name: distinct_client_count
+          query: |
+            WITH nightly_base AS (
+              SELECT
+                client_info.client_id,
+                "nightly" AS channel,
+              FROM `moz-fx-data-shared-prod.org_mozilla_fenix_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fenix", client_info.app_build).channel = "nightly"
+              -- NOTE: the below two tables are marked as depricated inside the GLEAN dictionary
+              -- however, they are still considered when generating active_users_aggregates metrics
+              -- this is why they are being considered here.
+              UNION ALL
+              SELECT
+                client_info.client_id,
+                "nightly" AS channel,
+              FROM `moz-fx-data-shared-prod.org_mozilla_fenix_nightly_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fenix_nightly", client_info.app_build).channel = "nightly"
+              UNION ALL
+              SELECT
+                client_info.client_id,
+                "nightly" AS channel,
+              FROM `moz-fx-data-shared-prod.org_mozilla_fennec_aurora_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fennec_aurora", client_info.app_build).channel = "nightly"
+            ),
+            base AS (
+              -- release channel
+              SELECT
+                client_info.client_id,
+                "release" AS channel,
+              FROM `moz-fx-data-shared-prod.org_mozilla_firefox_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_firefox", client_info.app_build).channel = "release"
+              -- beta channel
+              UNION ALL
+              SELECT
+                client_info.client_id,
+                "beta" AS channel,
+              FROM `moz-fx-data-shared-prod.org_mozilla_firefox_beta_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_firefox_beta", client_info.app_build).channel = "beta"
+              -- NOTE: nightly table also contains some entries considered to be "beta" channel by our ETL
+              -- this is why the below entries are included here.
+              UNION ALL
+              SELECT
+                client_info.client_id,
+                "beta" AS channel,
+              FROM `moz-fx-data-shared-prod.org_mozilla_fenix_live.baseline_v1`
+              WHERE DATE(submission_timestamp) = "{{ params.partition }}"
+              AND mozfun.norm.fenix_app_info("org_mozilla_fenix", client_info.app_build).channel = "beta"
+              -- nightly channel
+              UNION ALL
+              SELECT client_id, channel FROM nightly_base
+              LEFT JOIN `moz-fx-data-shared-prod.fenix.baseline_clients_last_seen` AS baseline_clients_last_seen
+                USING(client_id)
+              WHERE
+                baseline_clients_last_seen.submission_date = "{{ params.partition }}"
+                AND baseline_clients_last_seen.days_since_seen = 0
+            ),
+            distinct_client_counts_per_channel AS (
+              SELECT
+                channel,
+                COUNT(DISTINCT client_id) AS distinct_client_count,
+              FROM base
+              GROUP BY channel
+            )
+            SELECT SUM(distinct_client_count),
+            FROM distinct_client_counts_per_channel
