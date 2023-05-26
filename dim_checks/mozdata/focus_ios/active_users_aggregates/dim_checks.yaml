@@ -1,0 +1,31 @@
+dim_config:
+  owner:
+    email: lvargas@mozilla.com
+    slack: lvargas
+  slack_alerts:
+    enabled: true
+    notification_level: INFO
+    notify_channel: true
+    notify:
+      channels:
+        - kpi-monitoring-dim
+  tier: tier_1
+  partition_field: submission_date
+  dim_tests:
+    - type: custom_compare_metrics
+      title: DAU validation - Focus iOS
+      description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live table.
+      params:
+        condition: dau_sum = distinct_client_count
+        metric_1:
+          name: dau_sum
+          query: |
+            SELECT SUM(dau),
+            FROM `{{ project_id }}.{{ dataset }}.{{ table }}`
+            WHERE submission_date = "{{ params.partition }}"
+        metric_2:
+          name: distinct_client_count
+          query: |
+            SELECT COUNT(DISTINCT client_info.client_id) AS distinct_client_count,
+            FROM `moz-fx-data-shared-prod.org_mozilla_ios_focus_live.baseline_v1`
+            WHERE DATE(submission_timestamp) = "{{ params.partition }}"
