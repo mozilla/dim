@@ -19,11 +19,8 @@ def format_slack_notification(
     date_partition = results[0]["date_partition"]
     run_id = results[0]["run_id"]
     owner = json.loads(results[0]["owner"]).get("slack")
-    run_status = (
-        ":large_green_circle: Passed"
-        if all([result for result in results if result["passed"]])
-        else ":red_circle: Failed"
-    )
+    run_status = all([result["passed"] for result in results])
+    run_status_text = ":large_green_circle: Passed" if run_status else ":red_circle: Failed"
     dim_config_link = f"https://github.com/mozilla/dim/tree/main/{config_path}"
 
     formatted_section_template = dedent(
@@ -55,6 +52,8 @@ def format_slack_notification(
         for dim_check in results
     ]
 
+    channel_tag = "(cc: <!channel>)" if notify_channel and not run_status else ""
+
     blocks = [
         {
             "type": "section",
@@ -63,11 +62,11 @@ def format_slack_notification(
                 "text": dedent(
                     f"""\
                     ==================================================================
-                    DIM CHECK NOTIFICATION - Overall status: {run_status}
+                    DIM CHECK NOTIFICATION - Overall status: {run_status_text}
                     ==================================================================
                     *Table*: `{dataset}`
                     *Date partition*: `{date_partition}`
-                    *Owner*: <@{owner}> {"(cc: <!channel>)" if notify_channel else ""}
+                    *Owner*: <@{owner}> {channel_tag}
                     ----------
                     """
                 ),
