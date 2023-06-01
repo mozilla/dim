@@ -110,7 +110,6 @@ workflows:
       - deploy:
           context: data-eng-airflow-gcr
           requires:
-            - build
             - test-unit
             - test-format
             - test-linter
