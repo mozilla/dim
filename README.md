@@ -55,7 +55,7 @@
 1. Inside `dim_checks/` create a folder structure corresponding to `[project_id]/[dataset]/[table]` with `dim_checks.yaml` file inside.
 1. Add dim check definitions you'd like to run against your table (see TODO: [section_name](link) for more info).
 1. Build docker app image using `make build`
-1. Run the checks against your table using `docker run dim:latest run --project_id=[project_id] --dataset=[dataset] --table=[table] --date=[date_partition]`[^1].
+1. Run the checks against your table using `docker run dim:latest dim run --project_id=[project_id] --dataset=[dataset] --table=[table] --date=[date_partition]`[^1].
 
 ## Getting Started (local)
 
@@ -69,7 +69,7 @@
 _Additional info_
 
 [^1]:
-  Your container should have the following two environment variables set:   `GOOGLE_APPLICATION_CREDENTIALS` and `SLACK_BOT_TOKEN`. It's up to you have you want to do this. One option is to set these in your docker command as follows: `docker run -v [local_path_to_gcp_creds_file]:/sa.json -e GOOGLE_APPLICATION_CREDENTIALS=/sa.json -e SLACK_BOT_TOKEN="[SLACK_TOKEN]" dim:latest run --project_id=[project_id] --dataset=[dataset] --table=[table] --date=[date_partition]`
+  Your container should have the following two environment variables set:   `GOOGLE_APPLICATION_CREDENTIALS` and `SLACK_BOT_TOKEN`. It's up to you have you want to do this. One option is to set these in your docker command as follows: `docker run -v [local_path_to_gcp_creds_file]:/sa.json -e GOOGLE_APPLICATION_CREDENTIALS=/sa.json -e SLACK_BOT_TOKEN="[SLACK_TOKEN]" dim:latest dim run --project_id=[project_id] --dataset=[dataset] --table=[table] --date=[date_partition]`
 
 ## Functionality
 
