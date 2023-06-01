@@ -19,7 +19,7 @@ def format_slack_notification(
     date_partition = results[0]["date_partition"]
     run_id = results[0]["run_id"]
     owner = json.loads(results[0]["owner"]).get("slack")
-    run_status = all([result for result in results if result["passed"]])
+    run_status = all([result["passed"] for result in results])
     run_status_text = ":large_green_circle: Passed" if run_status else ":red_circle: Failed"
     dim_config_link = f"https://github.com/mozilla/dim/tree/main/{config_path}"
 
