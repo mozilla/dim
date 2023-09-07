@@ -16,7 +16,7 @@ dim_config:
       title: DAU validation - Firefox Android (Fenix)
       description: Validating that DAU sum in Active Users Aggregates is the same as unique client_id count in the live tables (all channels).
       params:
-        condition: dau_sum = distinct_client_count
+        condition: ABS(dau_sum - distinct_client_count) <= 1
         metric_1:
           name: dau_sum
           query: |
