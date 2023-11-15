@@ -32,7 +32,7 @@ dim_config:
           query: |
             WITH base AS (
               SELECT client_id
-              FROM `moz-fx-data-shared-prod.telemetry_live.main_v4`
+              FROM `moz-fx-data-shared-prod.telemetry_live.main_v5`
               WHERE
                 DATE(submission_timestamp) = "{{ params.partition }}"
                 AND normalized_app_name = 'Firefox'
@@ -72,7 +72,7 @@ dim_config:
                     payload.simple_measurements.active_ticks
                   )) AS active_ticks
               FROM
-                  `moz-fx-data-shared-prod.telemetry_live.main_v4`
+                  `moz-fx-data-shared-prod.telemetry_live.main_v5`
               WHERE
                 DATE(submission_timestamp) = "{{ params.partition }}"
                 AND normalized_app_name = 'Firefox'
