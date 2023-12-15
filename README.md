@@ -1,4 +1,12 @@
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/mozilla/dim/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/mozilla/dim/tree/main)
+# Deprecated
+
+This project has been deprecated and is no longer in use or being actively maintained.
+
+---
+
+# Original description
+
+---
 
 # Data Integrity Monitoring (dim)
 
