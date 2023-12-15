@@ -157,7 +157,7 @@ typing-extensions==4.6.3
     # via mypy
 tzdata==2023.3
     # via pandas
-urllib3==1.26.16
+urllib3==1.26.18
     # via
     #   google-auth
     #   requests
